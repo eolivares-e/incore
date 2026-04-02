@@ -12,7 +12,7 @@
 
 | Phase | Name | Status | PR Link | Completion |
 |-------|------|--------|---------|------------|
-| 0 | Foundation & Infrastructure | 🟡 In Review | [PR #TBD](TBD) | 100% |
+| 0 | Foundation & Infrastructure | 🟡 In Review | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
 | 1 | Shared Domain Models & Enums | ⚪ Not Started | - | 0% |
 | 2 | Policyholders Domain | ⚪ Not Started | - | 0% |
 | 3 | Policies Domain | ⚪ Not Started | - | 0% |
@@ -92,7 +92,7 @@ domains/{domain_name}/
 
 **Status**: 🟡 In Review  
 **Branch**: `feature/phase-0-foundation`  
-**PR**: [#TBD](TBD)  
+**PR**: [#1](https://github.com/eolivares-e/incore/pull/1)  
 **Started**: 2026-04-02  
 **Completed**: 2026-04-02
 
