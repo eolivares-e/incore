@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 3 - Policies Domain (Ready for PR)
+- **Current Phase**: Phase 3 - Policies Domain (🟢 COMPLETE)
 - **Progress**: 3/9 Phases Complete (33%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟡 Phase 3 Complete, Creating PR #5
+- **Status**: 🟢 Phase 3 Complete, PR #5 Updated with PEP 8 Compliance Fixes
 
 ---
 
@@ -15,7 +15,7 @@
 | 0 | Foundation & Infrastructure | 🟢 Complete | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
 | 1 | Shared Domain Models & Enums | 🟢 Complete | [PR #3](https://github.com/eolivares-e/incore/pull/3) | 100% |
 | 2 | Policyholders Domain | 🟢 Complete | [PR #4](https://github.com/eolivares-e/incore/pull/4) | 100% |
-| 3 | Policies Domain | 🟡 In Progress | PR #5 (Creating) | 100% |
+| 3 | Policies Domain | 🟢 Complete | [PR #5](https://github.com/eolivares-e/incore/pull/5) | 100% |
 | 4 | Pricing/Quoting Domain | ⚪ Not Started | - | 0% |
 | 5 | Underwriting Domain | ⚪ Not Started | - | 0% |
 | 6 | Billing/Payments Domain | ⚪ Not Started | - | 0% |
@@ -274,9 +274,9 @@ Add dependencies:
 
 **Objective**: Core policy management functionality
 
-**Status**: 🟡 In Progress (Complete, Creating PR)  
+**Status**: 🟢 Complete  
 **Branch**: `feature/phase-3-policies`  
-**PR**: PR #5 (Creating)  
+**PR**: [#5](https://github.com/eolivares-e/incore/pull/5) (Ready for Merge)  
 **Dependencies**: Phase 2  
 **Started**: 2026-04-02  
 **Completed**: 2026-04-02
@@ -602,7 +602,16 @@ Add dependencies:
 
 ## 📝 Decisions Log
 
-### 2026-04-02: Initial Technology Decisions
+### 2026-04-02: Phase 3 Completion - PEP 8 Naming Compliance
+- **Naming Convention**: Enforced PEP 8 Style across policy_holders domain
+  - Module/Package: `policy_holders/` (lowercase_with_underscores)
+  - Classes: `PolicyHolder` (CapWords/PascalCase)
+  - Database tables: `policy_holders` (lowercase_with_underscores for consistency)
+- **Migration Updates**: Updated migrations 001 & 002 to use `policy_holders` table
+- **Relationship Fixes**: Fixed SQLAlchemy relationships between Policy and PolicyHolder
+- **Import Updates**: Updated all imports from `policyholders` → `policy_holders`
+- **Dependency Fix**: Added `bcrypt<4.0.0` constraint for compatibility
+- **Test Coverage**: All 106 tests passing with PEP 8 compliant naming
 - **Database**: PostgreSQL (relational, robust, async support)
 - **ORM**: SQLAlchemy 2.0 async (flexibility, mature, not tightly coupled)
 - **Architecture**: Domain-Driven Design (DDD) (clear separation of concerns)
