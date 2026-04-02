@@ -1,22 +1,20 @@
 """Tests for custom exceptions."""
 
-import pytest
-
 from app.core.exceptions import (
     AuthenticationException,
     AuthorizationException,
     BusinessRuleException,
     DuplicateException,
     ExternalServiceException,
-    InsuranceCoreException,
+    InsuranceCoreError,
     NotFoundException,
     ValidationException,
 )
 
 
 def test_base_exception():
-    """Test base InsuranceCoreException."""
-    exc = InsuranceCoreException(
+    """Test base InsuranceCoreError."""
+    exc = InsuranceCoreError(
         message="Test error",
         status_code=500,
         details={"key": "value"},

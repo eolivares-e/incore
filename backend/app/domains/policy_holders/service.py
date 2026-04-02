@@ -1,6 +1,6 @@
-"""Service layer for Policyholder business logic.
+"""Service layer for PolicyHolder business logic.
 
-This module contains the business logic for the Policyholder domain,
+This module contains the business logic for the PolicyHolder domain,
 including validation rules and complex operations.
 """
 
@@ -10,19 +10,18 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException, ValidationException
-from app.domains.policyholders.models import Policyholder
-from app.domains.policyholders.repository import PolicyholderRepository
-from app.domains.policyholders.schemas import (
-    PolicyholderCreate,
-    PolicyholderFilterParams,
-    PolicyholderResponse,
-    PolicyholderUpdate,
+from app.domains.policy_holders.repository import PolicyHolderRepository
+from app.domains.policy_holders.schemas import (
+    PolicyHolderCreate,
+    PolicyHolderFilterParams,
+    PolicyHolderResponse,
+    PolicyHolderUpdate,
 )
 from app.shared.schemas.base import PaginatedResponse, PaginationParams
 
 
-class PolicyholderService:
-    """Service for Policyholder business logic.
+class PolicyHolderService:
+    """Service for PolicyHolder business logic.
 
     Handles validation, business rules, and orchestrates repository operations.
     """
@@ -33,19 +32,19 @@ class PolicyholderService:
         Args:
             session: SQLAlchemy async session
         """
-        self.repository = PolicyholderRepository(session)
+        self.repository = PolicyHolderRepository(session)
 
     async def create_policyholder(
-        self, data: PolicyholderCreate
-    ) -> PolicyholderResponse:
+        self, data: PolicyHolderCreate
+    ) -> PolicyHolderResponse:
         """Create a new policyholder.
 
         Business rules:
         - Email must be unique
-        - Policyholder must be at least 18 years old (validated in schema)
+        - PolicyHolder must be at least 18 years old (validated in schema)
 
         Args:
-            data: Policyholder creation data
+            data: PolicyHolder creation data
 
         Returns:
             Created policyholder
@@ -63,16 +62,16 @@ class PolicyholderService:
 
         # Create policyholder
         policyholder = await self.repository.create(data)
-        return PolicyholderResponse.model_validate(policyholder)
+        return PolicyHolderResponse.model_validate(policyholder)
 
-    async def get_policyholder(self, policyholder_id: UUID) -> PolicyholderResponse:
+    async def get_policyholder(self, policyholder_id: UUID) -> PolicyHolderResponse:
         """Get a policyholder by ID.
 
         Args:
             policyholder_id: UUID of the policyholder
 
         Returns:
-            Policyholder data
+            PolicyHolder data
 
         Raises:
             NotFoundException: If policyholder not found
@@ -80,17 +79,17 @@ class PolicyholderService:
         policyholder = await self.repository.get_by_id(policyholder_id)
         if not policyholder:
             raise NotFoundException(
-                resource="Policyholder",
+                resource="PolicyHolder",
                 resource_id=str(policyholder_id),
             )
 
-        return PolicyholderResponse.model_validate(policyholder)
+        return PolicyHolderResponse.model_validate(policyholder)
 
     async def get_policyholders(
         self,
         pagination: PaginationParams,
-        filters: PolicyholderFilterParams,
-    ) -> PaginatedResponse[PolicyholderResponse]:
+        filters: PolicyHolderFilterParams,
+    ) -> PaginatedResponse[PolicyHolderResponse]:
         """Get a paginated list of policyholders with optional filters.
 
         Args:
@@ -117,7 +116,7 @@ class PolicyholderService:
         )
 
         # Convert to response schemas
-        items = [PolicyholderResponse.model_validate(ph) for ph in policyholders]
+        items = [PolicyHolderResponse.model_validate(ph) for ph in policyholders]
 
         return PaginatedResponse.create(
             items=items,
@@ -129,8 +128,8 @@ class PolicyholderService:
     async def update_policyholder(
         self,
         policyholder_id: UUID,
-        data: PolicyholderUpdate,
-    ) -> PolicyholderResponse:
+        data: PolicyHolderUpdate,
+    ) -> PolicyHolderResponse:
         """Update a policyholder.
 
         Business rules:
@@ -152,7 +151,7 @@ class PolicyholderService:
         existing = await self.repository.get_by_id(policyholder_id)
         if not existing:
             raise NotFoundException(
-                resource="Policyholder",
+                resource="PolicyHolder",
                 resource_id=str(policyholder_id),
             )
 
@@ -167,7 +166,7 @@ class PolicyholderService:
 
         # Update policyholder
         updated = await self.repository.update(policyholder_id, data)
-        return PolicyholderResponse.model_validate(updated)
+        return PolicyHolderResponse.model_validate(updated)
 
     async def delete_policyholder(self, policyholder_id: UUID) -> None:
         """Soft delete a policyholder.
@@ -183,13 +182,13 @@ class PolicyholderService:
         deleted = await self.repository.delete(policyholder_id)
         if not deleted:
             raise NotFoundException(
-                resource="Policyholder",
+                resource="PolicyHolder",
                 resource_id=str(policyholder_id),
             )
 
     async def activate_policyholder(
         self, policyholder_id: UUID
-    ) -> PolicyholderResponse:
+    ) -> PolicyHolderResponse:
         """Reactivate a previously deactivated policyholder.
 
         Args:
@@ -202,30 +201,30 @@ class PolicyholderService:
             NotFoundException: If policyholder not found
         """
         # Use update to set is_active to True
-        update_data = PolicyholderUpdate(is_active=True)
+        update_data = PolicyHolderUpdate(is_active=True)
         updated = await self.repository.update(policyholder_id, update_data)
 
         if not updated:
             raise NotFoundException(
-                resource="Policyholder",
+                resource="PolicyHolder",
                 resource_id=str(policyholder_id),
             )
 
-        return PolicyholderResponse.model_validate(updated)
+        return PolicyHolderResponse.model_validate(updated)
 
     async def get_policyholder_by_email(
         self, email: str
-    ) -> Optional[PolicyholderResponse]:
+    ) -> Optional[PolicyHolderResponse]:
         """Get a policyholder by email address.
 
         Args:
             email: Email address to search for
 
         Returns:
-            Policyholder if found, None otherwise
+            PolicyHolder if found, None otherwise
         """
         policyholder = await self.repository.get_by_email(email)
         if not policyholder:
             return None
 
-        return PolicyholderResponse.model_validate(policyholder)
+        return PolicyHolderResponse.model_validate(policyholder)

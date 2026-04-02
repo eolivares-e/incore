@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
-from app.core.exceptions import InsuranceCoreException
-from app.domains.policyholders.router import router as policyholders_router
+from app.core.exceptions import InsuranceCoreError
+from app.domains.policies.router import router as policies_router
+from app.domains.policy_holders.router import router as policy_holders_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -16,7 +17,8 @@ app = FastAPI(
 )
 
 # Include routers
-app.include_router(policyholders_router, prefix=settings.API_V1_STR)
+app.include_router(policy_holders_router, prefix=settings.API_V1_STR)
+app.include_router(policies_router, prefix=settings.API_V1_STR)
 
 # CORS middleware
 app.add_middleware(
@@ -29,9 +31,9 @@ app.add_middleware(
 
 
 # Exception handlers
-@app.exception_handler(InsuranceCoreException)
+@app.exception_handler(InsuranceCoreError)
 async def insurance_core_exception_handler(
-    request: Request, exc: InsuranceCoreException
+    request: Request, exc: InsuranceCoreError
 ) -> JSONResponse:
     """Handle all custom Insurance Core exceptions."""
     return JSONResponse(

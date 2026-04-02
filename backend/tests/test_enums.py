@@ -1,6 +1,5 @@
 """Tests for shared domain enums."""
 
-import pytest
 
 from app.shared.enums import (
     ClaimStatus,
