@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.exceptions import InsuranceCoreException
+from app.domains.policies.router import router as policies_router
 from app.domains.policyholders.router import router as policyholders_router
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(policyholders_router, prefix=settings.API_V1_STR)
+app.include_router(policies_router, prefix=settings.API_V1_STR)
 
 # CORS middleware
 app.add_middleware(

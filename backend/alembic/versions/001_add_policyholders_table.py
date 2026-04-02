@@ -22,26 +22,14 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Create gender enum
-    gender_enum = postgresql.ENUM(
-        "MALE",
-        "FEMALE",
-        "OTHER",
-        "PREFER_NOT_TO_SAY",
-        name="gender_enum",
-        create_type=True,
+    op.execute(
+        "CREATE TYPE gender_enum AS ENUM ('MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY')"
     )
-    gender_enum.create(op.get_bind(), checkfirst=True)
 
     # Create identification_type enum
-    identification_type_enum = postgresql.ENUM(
-        "PASSPORT",
-        "DRIVER_LICENSE",
-        "NATIONAL_ID",
-        "SSN",
-        name="identification_type_enum",
-        create_type=True,
+    op.execute(
+        "CREATE TYPE identification_type_enum AS ENUM ('PASSPORT', 'DRIVER_LICENSE', 'NATIONAL_ID', 'SSN')"
     )
-    identification_type_enum.create(op.get_bind(), checkfirst=True)
 
     # Create policyholders table
     op.create_table(
@@ -50,7 +38,18 @@ def upgrade() -> None:
         sa.Column("first_name", sa.String(length=100), nullable=False),
         sa.Column("last_name", sa.String(length=100), nullable=False),
         sa.Column("date_of_birth", sa.Date(), nullable=False),
-        sa.Column("gender", gender_enum, nullable=False),
+        sa.Column(
+            "gender",
+            postgresql.ENUM(
+                "MALE",
+                "FEMALE",
+                "OTHER",
+                "PREFER_NOT_TO_SAY",
+                name="gender_enum",
+                create_type=False,
+            ),
+            nullable=False,
+        ),
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("phone", sa.String(length=20), nullable=False),
         sa.Column("street_address", sa.String(length=255), nullable=False),
@@ -58,7 +57,18 @@ def upgrade() -> None:
         sa.Column("state", sa.String(length=100), nullable=False),
         sa.Column("zip_code", sa.String(length=10), nullable=False),
         sa.Column("country", sa.String(length=100), nullable=False),
-        sa.Column("identification_type", identification_type_enum, nullable=False),
+        sa.Column(
+            "identification_type",
+            postgresql.ENUM(
+                "PASSPORT",
+                "DRIVER_LICENSE",
+                "NATIONAL_ID",
+                "SSN",
+                name="identification_type_enum",
+                create_type=False,
+            ),
+            nullable=False,
+        ),
         sa.Column("identification_number", sa.String(length=50), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),

@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Boolean, Date, DateTime, Enum, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.shared.enums import Gender, IdentificationType
@@ -44,7 +44,7 @@ class Policyholder(Base):
         nullable=False,
     )
     gender: Mapped[Gender] = mapped_column(
-        Enum(Gender, name="gender_enum", create_type=True),
+        Enum(Gender, name="gender_enum", create_type=False),
         nullable=False,
     )
 
@@ -85,7 +85,7 @@ class Policyholder(Base):
 
     # Identification
     identification_type: Mapped[IdentificationType] = mapped_column(
-        Enum(IdentificationType, name="identification_type_enum", create_type=True),
+        Enum(IdentificationType, name="identification_type_enum", create_type=False),
         nullable=False,
     )
     identification_number: Mapped[str] = mapped_column(
@@ -113,6 +113,13 @@ class Policyholder(Base):
         nullable=False,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
+    )
+
+    # Relationships
+    policies: Mapped[list["Policy"]] = relationship(  # noqa: F821
+        "Policy",
+        back_populates="policyholder",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:

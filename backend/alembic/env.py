@@ -12,6 +12,7 @@ from app.core.database import Base
 from app.core.config import settings
 
 # Import all models so Alembic can detect them
+from app.domains.policies.models import Coverage, Policy  # noqa: F401
 from app.domains.policyholders.models import Policyholder  # noqa: F401
 
 # this is the Alembic Config object, which provides

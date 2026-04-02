@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 2 - Policyholders Domain (Ready for PR)
-- **Progress**: 2/9 Phases Complete (22%)
+- **Current Phase**: Phase 3 - Policies Domain (Ready for PR)
+- **Progress**: 3/9 Phases Complete (33%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟡 Phase 2 Complete, Creating PR #4
+- **Status**: 🟡 Phase 3 Complete, Creating PR #5
 
 ---
 
@@ -14,8 +14,8 @@
 |-------|------|--------|---------|------------|
 | 0 | Foundation & Infrastructure | 🟢 Complete | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
 | 1 | Shared Domain Models & Enums | 🟢 Complete | [PR #3](https://github.com/eolivares-e/incore/pull/3) | 100% |
-| 2 | Policyholders Domain | 🟡 In Progress | PR #4 (Creating) | 100% |
-| 3 | Policies Domain | ⚪ Not Started | - | 0% |
+| 2 | Policyholders Domain | 🟢 Complete | [PR #4](https://github.com/eolivares-e/incore/pull/4) | 100% |
+| 3 | Policies Domain | 🟡 In Progress | PR #5 (Creating) | 100% |
 | 4 | Pricing/Quoting Domain | ⚪ Not Started | - | 0% |
 | 5 | Underwriting Domain | ⚪ Not Started | - | 0% |
 | 6 | Billing/Payments Domain | ⚪ Not Started | - | 0% |
@@ -274,21 +274,23 @@ Add dependencies:
 
 **Objective**: Core policy management functionality
 
-**Status**: ⚪ Not Started  
+**Status**: 🟡 In Progress (Complete, Creating PR)  
 **Branch**: `feature/phase-3-policies`  
-**PR**: -  
-**Dependencies**: Phase 2
+**PR**: PR #5 (Creating)  
+**Dependencies**: Phase 2  
+**Started**: 2026-04-02  
+**Completed**: 2026-04-02
 
 ### Tasks Checklist
-- [ ] Create Policy and Coverage models
-- [ ] Create schemas for Policy and Coverage
-- [ ] Create PolicyRepository and CoverageRepository
-- [ ] Create PolicyService with business logic
-- [ ] Create router with endpoints
-- [ ] Implement policy_number auto-generation
-- [ ] Create Alembic migrations
-- [ ] Write tests
-- [ ] Update documentation
+- [x] Create Policy and Coverage models
+- [x] Create schemas for Policy and Coverage
+- [x] Create PolicyRepository and CoverageRepository
+- [x] Create PolicyService with business logic
+- [x] Create router with endpoints
+- [x] Implement policy_number auto-generation
+- [x] Create Alembic migrations
+- [x] Write tests
+- [x] Update documentation
 
 ### Policy Model Fields
 - id (UUID)
