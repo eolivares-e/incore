@@ -1,4 +1,21 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: incore-postgres
+    environment:
+      - POSTGRES_USER=insurance_user
+      - POSTGRES_PASSWORD=insurance_pass
+      - POSTGRES_DB=insurance_core
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insurance_user -d insurance_core"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   frontend:
     build:
       context: ./frontend
@@ -23,5 +40,15 @@ services:
     environment:
       - PROJECT_NAME=Insurance Core API
       - VERSION=0.1.0
+      - DATABASE_URL=postgresql+asyncpg://insurance_user:insurance_pass@postgres:5432/insurance_core
+      - JWT_SECRET_KEY=your-secret-key-change-in-production
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
     volumes:
       - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
