@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     environment:
@@ -15,12 +13,11 @@ services:
       - /app/.next
     depends_on:
       - backend
-    command: yarn dev
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "8000:8000"
     environment:
@@ -28,4 +25,3 @@ services:
       - VERSION=0.1.0
     volumes:
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
