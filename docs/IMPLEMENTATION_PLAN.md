@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 1 - Shared Domain Models & Enums
+- **Current Phase**: Phase 1 - Shared Domain Models & Enums (Ready for PR)
 - **Progress**: 1/9 Phases Complete (11%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟢 Phase 0 Complete, Ready for Phase 1
+- **Status**: 🟡 Phase 1 Complete, Creating PR #2
 
 ---
 
@@ -13,7 +13,7 @@
 | Phase | Name | Status | PR Link | Completion |
 |-------|------|--------|---------|------------|
 | 0 | Foundation & Infrastructure | 🟢 Complete | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
-| 1 | Shared Domain Models & Enums | ⚪ Not Started | - | 0% |
+| 1 | Shared Domain Models & Enums | 🟡 In Progress | PR #2 (Creating) | 100% |
 | 2 | Policyholders Domain | ⚪ Not Started | - | 0% |
 | 3 | Policies Domain | ⚪ Not Started | - | 0% |
 | 4 | Pricing/Quoting Domain | ⚪ Not Started | - | 0% |
@@ -187,17 +187,19 @@ Add dependencies:
 
 **Objective**: Define common types and enumerations for the insurance domain
 
-**Status**: ⚪ Not Started  
+**Status**: 🟡 In Progress (Complete, Creating PR)  
 **Branch**: `feature/phase-1-shared-domain`  
-**PR**: -  
-**Dependencies**: Phase 0
+**PR**: PR #2 (Creating)  
+**Dependencies**: Phase 0  
+**Started**: 2026-04-02  
+**Completed**: 2026-04-02
 
 ### Tasks Checklist
-- [ ] Create shared/enums.py with insurance domain enums
-- [ ] Create shared/types.py with common type aliases
-- [ ] Create shared/schemas/base.py with base schemas
-- [ ] Write tests for enums and schemas
-- [ ] Update documentation
+- [x] Create shared/enums.py with insurance domain enums
+- [x] Create shared/types.py with common type aliases
+- [x] Create shared/schemas/base.py with base schemas
+- [x] Write tests for enums and schemas
+- [x] Update documentation
 
 ### Enums to Implement
 - `PolicyStatus` (DRAFT, ACTIVE, EXPIRED, CANCELLED, SUSPENDED, PENDING_RENEWAL)
