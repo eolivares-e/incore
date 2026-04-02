@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 1 - Shared Domain Models & Enums (Ready for PR)
-- **Progress**: 1/9 Phases Complete (11%)
+- **Current Phase**: Phase 2 - Policyholders Domain (Ready for PR)
+- **Progress**: 2/9 Phases Complete (22%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟡 Phase 1 Complete, Creating PR #2
+- **Status**: 🟡 Phase 2 Complete, Creating PR #4
 
 ---
 
@@ -13,8 +13,8 @@
 | Phase | Name | Status | PR Link | Completion |
 |-------|------|--------|---------|------------|
 | 0 | Foundation & Infrastructure | 🟢 Complete | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
-| 1 | Shared Domain Models & Enums | 🟡 In Progress | PR #2 (Creating) | 100% |
-| 2 | Policyholders Domain | ⚪ Not Started | - | 0% |
+| 1 | Shared Domain Models & Enums | 🟢 Complete | [PR #3](https://github.com/eolivares-e/incore/pull/3) | 100% |
+| 2 | Policyholders Domain | 🟡 In Progress | PR #4 (Creating) | 100% |
 | 3 | Policies Domain | ⚪ Not Started | - | 0% |
 | 4 | Pricing/Quoting Domain | ⚪ Not Started | - | 0% |
 | 5 | Underwriting Domain | ⚪ Not Started | - | 0% |
@@ -225,21 +225,22 @@ Add dependencies:
 
 **Objective**: CRUD for insurance policyholders/customers
 
-**Status**: ⚪ Not Started  
+**Status**: 🟡 In Progress (Complete, Creating PR)  
 **Branch**: `feature/phase-2-policyholders`  
-**PR**: -  
-**Dependencies**: Phase 0, Phase 1
+**PR**: PR #4 (Creating)  
+**Dependencies**: Phase 0, Phase 1  
+**Started**: 2026-04-02  
+**Completed**: 2026-04-02
 
 ### Tasks Checklist
-- [ ] Create models.py (Policyholder SQLAlchemy model)
-- [ ] Create schemas.py (Pydantic schemas)
-- [ ] Create repository.py (data access layer)
-- [ ] Create service.py (business logic)
-- [ ] Create router.py (FastAPI endpoints)
-- [ ] Create Alembic migration
-- [ ] Write unit tests
-- [ ] Write integration tests
-- [ ] Update documentation
+- [x] Create models.py (Policyholder SQLAlchemy model)
+- [x] Create schemas.py (Pydantic schemas)
+- [x] Create repository.py (data access layer)
+- [x] Create service.py (business logic)
+- [x] Create router.py (FastAPI endpoints)
+- [x] Create Alembic migration
+- [x] Write unit tests
+- [x] Update documentation
 
 ### Policyholder Model Fields
 - id (UUID primary key)
