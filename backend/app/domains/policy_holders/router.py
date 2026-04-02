@@ -7,13 +7,13 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.domains.policyholders.schemas import (
+from app.domains.policy_holders.schemas import (
     PolicyHolderCreate,
     PolicyHolderFilterParams,
     PolicyHolderResponse,
     PolicyHolderUpdate,
 )
-from app.domains.policyholders.service import PolicyHolderService
+from app.domains.policy_holders.service import PolicyHolderService
 from app.shared.schemas.base import MessageResponse, PaginatedResponse, PaginationParams
 
 router = APIRouter(prefix="/policyholders", tags=["PolicyHolders"])

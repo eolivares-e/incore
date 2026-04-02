@@ -85,7 +85,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["policyholder_id"], ["policyholders.id"], ondelete="RESTRICT"
+            ["policyholder_id"], ["policy_holders.id"], ondelete="RESTRICT"
         ),
         sa.PrimaryKeyConstraint("id"),
     )

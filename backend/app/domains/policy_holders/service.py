@@ -10,8 +10,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException, ValidationException
-from app.domains.policyholders.repository import PolicyHolderRepository
-from app.domains.policyholders.schemas import (
+from app.domains.policy_holders.repository import PolicyHolderRepository
+from app.domains.policy_holders.schemas import (
     PolicyHolderCreate,
     PolicyHolderFilterParams,
     PolicyHolderResponse,

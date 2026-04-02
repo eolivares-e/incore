@@ -1,4 +1,4 @@
-"""Add policyholders table
+"""Add policy_holders table
 
 Revision ID: 001
 Revises:
@@ -31,9 +31,9 @@ def upgrade() -> None:
         "CREATE TYPE identification_type_enum AS ENUM ('PASSPORT', 'DRIVER_LICENSE', 'NATIONAL_ID', 'SSN')"
     )
 
-    # Create policyholders table
+    # Create policy_holders table
     op.create_table(
-        "policyholders",
+        "policy_holders",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("first_name", sa.String(length=100), nullable=False),
         sa.Column("last_name", sa.String(length=100), nullable=False),
@@ -77,44 +77,52 @@ def upgrade() -> None:
     )
 
     # Create indexes
-    op.create_index(op.f("ix_policyholders_id"), "policyholders", ["id"], unique=False)
     op.create_index(
-        op.f("ix_policyholders_first_name"),
-        "policyholders",
+        op.f("ix_policy_holders_id"), "policy_holders", ["id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_policy_holders_first_name"),
+        "policy_holders",
         ["first_name"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_policyholders_last_name"), "policyholders", ["last_name"], unique=False
+        op.f("ix_policy_holders_last_name"),
+        "policy_holders",
+        ["last_name"],
+        unique=False,
     )
     op.create_index(
-        op.f("ix_policyholders_email"), "policyholders", ["email"], unique=True
+        op.f("ix_policy_holders_email"), "policy_holders", ["email"], unique=True
     )
     op.create_index(
-        op.f("ix_policyholders_identification_number"),
-        "policyholders",
+        op.f("ix_policy_holders_identification_number"),
+        "policy_holders",
         ["identification_number"],
         unique=False,
     )
     op.create_index(
-        op.f("ix_policyholders_is_active"), "policyholders", ["is_active"], unique=False
+        op.f("ix_policy_holders_is_active"),
+        "policy_holders",
+        ["is_active"],
+        unique=False,
     )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # Drop indexes
-    op.drop_index(op.f("ix_policyholders_is_active"), table_name="policyholders")
+    op.drop_index(op.f("ix_policy_holders_is_active"), table_name="policy_holders")
     op.drop_index(
-        op.f("ix_policyholders_identification_number"), table_name="policyholders"
+        op.f("ix_policy_holders_identification_number"), table_name="policy_holders"
     )
-    op.drop_index(op.f("ix_policyholders_email"), table_name="policyholders")
-    op.drop_index(op.f("ix_policyholders_last_name"), table_name="policyholders")
-    op.drop_index(op.f("ix_policyholders_first_name"), table_name="policyholders")
-    op.drop_index(op.f("ix_policyholders_id"), table_name="policyholders")
+    op.drop_index(op.f("ix_policy_holders_email"), table_name="policy_holders")
+    op.drop_index(op.f("ix_policy_holders_last_name"), table_name="policy_holders")
+    op.drop_index(op.f("ix_policy_holders_first_name"), table_name="policy_holders")
+    op.drop_index(op.f("ix_policy_holders_id"), table_name="policy_holders")
 
     # Drop table
-    op.drop_table("policyholders")
+    op.drop_table("policy_holders")
 
     # Drop enums
     op.execute("DROP TYPE IF EXISTS identification_type_enum")

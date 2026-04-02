@@ -46,10 +46,10 @@ class Policy(Base):
         index=True,
     )
 
-    # Foreign Key to Policyholder
+    # Foreign Key to PolicyHolder
     policyholder_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("policyholders.id", ondelete="RESTRICT"),
+        ForeignKey("policy_holders.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
@@ -117,8 +117,8 @@ class Policy(Base):
     )
 
     # Relationships
-    policyholder: Mapped["Policyholder"] = relationship(  # noqa: F821
-        "Policyholder",
+    policy_holder: Mapped["PolicyHolder"] = relationship(  # noqa: F821
+        "PolicyHolder",
         back_populates="policies",
         lazy="joined",
     )

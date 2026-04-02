@@ -3,8 +3,8 @@
 This domain manages insurance policyholders (customers) and their information.
 """
 
-from app.domains.policyholders.models import PolicyHolder
-from app.domains.policyholders.schemas import (
+from app.domains.policy_holders.models import PolicyHolder
+from app.domains.policy_holders.schemas import (
     PolicyHolderCreate,
     PolicyHolderResponse,
     PolicyHolderUpdate,

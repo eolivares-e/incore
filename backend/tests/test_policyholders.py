@@ -5,10 +5,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.domains.policyholders.schemas import (
-    PolicyholderCreate,
-    PolicyholderResponse,
-    PolicyholderUpdate,
+from app.domains.policy_holders.schemas import (
+    PolicyHolderCreate as PolicyholderCreate,
+    PolicyHolderResponse as PolicyholderResponse,
+    PolicyHolderUpdate as PolicyholderUpdate,
 )
 from app.shared.enums import Gender, IdentificationType
 
@@ -134,7 +134,7 @@ def test_policyholder_response_schema_from_dict():
 
 def test_policyholder_model_properties():
     """Test Policyholder model computed properties."""
-    from app.domains.policyholders.models import Policyholder
+    from app.domains.policy_holders.models import PolicyHolder as Policyholder
 
     policyholder = Policyholder(
         id=uuid4(),
@@ -162,7 +162,7 @@ def test_policyholder_model_properties():
 
 def test_policyholder_model_repr():
     """Test Policyholder model string representation."""
-    from app.domains.policyholders.models import Policyholder
+    from app.domains.policy_holders.models import PolicyHolder as Policyholder
 
     ph_id = uuid4()
     policyholder = Policyholder(
@@ -186,7 +186,7 @@ def test_policyholder_model_repr():
     )
 
     repr_str = repr(policyholder)
-    assert "Policyholder" in repr_str
+    assert "PolicyHolder" in repr_str
     assert str(ph_id) in repr_str
     assert "John Doe" in repr_str
     assert "john.doe@example.com" in repr_str

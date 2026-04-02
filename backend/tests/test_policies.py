@@ -13,8 +13,8 @@ from app.domains.policies.schemas import (
     PolicyResponse,
     PolicyUpdate,
 )
-from app.domains.policyholders.models import (
-    Policyholder,  # noqa: F401 - needed for SQLAlchemy relationship resolution
+from app.domains.policy_holders.models import (
+    PolicyHolder,  # noqa: F401 - needed for SQLAlchemy relationship resolution
 )
 from app.shared.enums import CoverageType, PolicyStatus, PolicyType
 

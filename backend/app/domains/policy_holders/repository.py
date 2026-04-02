@@ -10,8 +10,8 @@ from uuid import UUID
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.policyholders.models import PolicyHolder
-from app.domains.policyholders.schemas import PolicyHolderCreate, PolicyHolderUpdate
+from app.domains.policy_holders.models import PolicyHolder
+from app.domains.policy_holders.schemas import PolicyHolderCreate, PolicyHolderUpdate
 
 
 class PolicyHolderRepository:
