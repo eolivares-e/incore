@@ -1,4 +1,4 @@
-"""Pydantic schemas for the Policyholders domain."""
+"""Pydantic schemas for the PolicyHolders domain."""
 
 from datetime import date, datetime
 from typing import Optional
@@ -8,16 +8,15 @@ from pydantic import EmailStr, Field, field_validator
 
 from app.shared.enums import Gender, IdentificationType
 from app.shared.schemas.base import BaseSchema, TimestampMixin, UUIDMixin
-from app.shared.types import Email, IdentificationNumber, PhoneNumber, ZipCode
-
+from app.shared.types import IdentificationNumber, PhoneNumber, ZipCode
 
 # ============================================================================
 # Base Schemas
 # ============================================================================
 
 
-class PolicyholderBase(BaseSchema):
-    """Base schema with common Policyholder fields."""
+class PolicyHolderBase(BaseSchema):
+    """Base schema with common PolicyHolder fields."""
 
     first_name: str = Field(
         min_length=1,
@@ -93,7 +92,7 @@ class PolicyholderBase(BaseSchema):
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
 
         if age < 18:
-            raise ValueError("Policyholder must be at least 18 years old")
+            raise ValueError("PolicyHolder must be at least 18 years old")
         if age > 150:
             raise ValueError("Invalid date of birth")
 
@@ -105,8 +104,8 @@ class PolicyholderBase(BaseSchema):
 # ============================================================================
 
 
-class PolicyholderCreate(PolicyholderBase):
-    """Schema for creating a new Policyholder.
+class PolicyHolderCreate(PolicyHolderBase):
+    """Schema for creating a new PolicyHolder.
 
     Used in POST /api/v1/policyholders
     """
@@ -114,8 +113,8 @@ class PolicyholderCreate(PolicyholderBase):
     pass
 
 
-class PolicyholderUpdate(BaseSchema):
-    """Schema for updating a Policyholder.
+class PolicyHolderUpdate(BaseSchema):
+    """Schema for updating a PolicyHolder.
 
     All fields are optional. Only provided fields will be updated.
     Used in PUT /api/v1/policyholders/{id}
@@ -201,7 +200,7 @@ class PolicyholderUpdate(BaseSchema):
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
 
         if age < 18:
-            raise ValueError("Policyholder must be at least 18 years old")
+            raise ValueError("PolicyHolder must be at least 18 years old")
         if age > 150:
             raise ValueError("Invalid date of birth")
 
@@ -213,8 +212,8 @@ class PolicyholderUpdate(BaseSchema):
 # ============================================================================
 
 
-class PolicyholderResponse(PolicyholderBase, UUIDMixin, TimestampMixin):
-    """Schema for Policyholder responses.
+class PolicyHolderResponse(PolicyHolderBase, UUIDMixin, TimestampMixin):
+    """Schema for PolicyHolder responses.
 
     Includes all fields plus UUID, timestamps, and computed fields.
     Used in all GET endpoints.
@@ -238,7 +237,7 @@ class PolicyholderResponse(PolicyholderBase, UUIDMixin, TimestampMixin):
     }
 
 
-class PolicyholderListResponse(BaseSchema):
+class PolicyHolderListResponse(BaseSchema):
     """Schema for paginated list of policyholders.
 
     This is a simplified version for list endpoints.
@@ -262,7 +261,7 @@ class PolicyholderListResponse(BaseSchema):
 # ============================================================================
 
 
-class PolicyholderFilterParams(BaseSchema):
+class PolicyHolderFilterParams(BaseSchema):
     """Query parameters for filtering policyholders."""
 
     email: Optional[str] = Field(

@@ -9,14 +9,14 @@ from pydantic import ValidationError
 from app.domains.policies.models import Coverage, Policy
 from app.domains.policies.schemas import (
     CoverageCreate,
-    CoverageResponse,
     PolicyCreate,
     PolicyResponse,
     PolicyUpdate,
 )
-from app.domains.policyholders.models import Policyholder  # noqa: F401 - needed for SQLAlchemy relationship resolution
+from app.domains.policyholders.models import (
+    Policyholder,  # noqa: F401 - needed for SQLAlchemy relationship resolution
+)
 from app.shared.enums import CoverageType, PolicyStatus, PolicyType
-
 
 # ============================================================================
 # Model Tests

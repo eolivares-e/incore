@@ -1,6 +1,5 @@
 """Tests for core security module."""
 
-import pytest
 from jose import jwt
 
 from app.core.config import settings

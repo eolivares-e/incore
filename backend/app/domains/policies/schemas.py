@@ -11,7 +11,6 @@ from app.shared.enums import CoverageType, PolicyStatus, PolicyType
 from app.shared.schemas.base import BaseSchema, TimestampMixin, UUIDMixin
 from app.shared.types import CoverageAmount, PolicyNumber, PremiumAmount
 
-
 # ============================================================================
 # Coverage Schemas
 # ============================================================================

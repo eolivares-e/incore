@@ -1,16 +1,16 @@
 """Tests for Policyholder domain."""
 
-import pytest
 from datetime import date, datetime
 from uuid import uuid4
 
+import pytest
+
 from app.domains.policyholders.schemas import (
     PolicyholderCreate,
-    PolicyholderUpdate,
     PolicyholderResponse,
+    PolicyholderUpdate,
 )
 from app.shared.enums import Gender, IdentificationType
-
 
 # ============================================================================
 # Schema Tests

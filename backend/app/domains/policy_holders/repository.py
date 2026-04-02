@@ -1,6 +1,6 @@
-"""Repository for Policyholder data access.
+"""Repository for PolicyHolder data access.
 
-This module implements the Repository pattern for the Policyholder domain,
+This module implements the Repository pattern for the PolicyHolder domain,
 providing an abstraction layer over database operations.
 """
 
@@ -10,12 +10,12 @@ from uuid import UUID
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.policyholders.models import Policyholder
-from app.domains.policyholders.schemas import PolicyholderCreate, PolicyholderUpdate
+from app.domains.policyholders.models import PolicyHolder
+from app.domains.policyholders.schemas import PolicyHolderCreate, PolicyHolderUpdate
 
 
-class PolicyholderRepository:
-    """Repository for Policyholder database operations.
+class PolicyHolderRepository:
+    """Repository for PolicyHolder database operations.
 
     Implements the Repository pattern to abstract database queries
     and provide a clean interface for data access.
@@ -29,44 +29,44 @@ class PolicyholderRepository:
         """
         self.session = session
 
-    async def create(self, data: PolicyholderCreate) -> Policyholder:
+    async def create(self, data: PolicyHolderCreate) -> PolicyHolder:
         """Create a new policyholder.
 
         Args:
-            data: Policyholder creation data
+            data: PolicyHolder creation data
 
         Returns:
-            Created Policyholder instance
+            Created PolicyHolder instance
         """
-        policyholder = Policyholder(**data.model_dump())
+        policyholder = PolicyHolder(**data.model_dump())
         self.session.add(policyholder)
         await self.session.commit()
         await self.session.refresh(policyholder)
         return policyholder
 
-    async def get_by_id(self, policyholder_id: UUID) -> Optional[Policyholder]:
+    async def get_by_id(self, policyholder_id: UUID) -> Optional[PolicyHolder]:
         """Get a policyholder by ID.
 
         Args:
             policyholder_id: UUID of the policyholder
 
         Returns:
-            Policyholder instance if found, None otherwise
+            PolicyHolder instance if found, None otherwise
         """
-        stmt = select(Policyholder).where(Policyholder.id == policyholder_id)
+        stmt = select(PolicyHolder).where(PolicyHolder.id == policyholder_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_email(self, email: str) -> Optional[Policyholder]:
+    async def get_by_email(self, email: str) -> Optional[PolicyHolder]:
         """Get a policyholder by email.
 
         Args:
             email: Email address
 
         Returns:
-            Policyholder instance if found, None otherwise
+            PolicyHolder instance if found, None otherwise
         """
-        stmt = select(Policyholder).where(Policyholder.email == email.lower())
+        stmt = select(PolicyHolder).where(PolicyHolder.email == email.lower())
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -77,7 +77,7 @@ class PolicyholderRepository:
         email: Optional[str] = None,
         is_active: Optional[bool] = None,
         search: Optional[str] = None,
-    ) -> list[Policyholder]:
+    ) -> list[PolicyHolder]:
         """Get all policyholders with optional filtering.
 
         Args:
@@ -88,29 +88,29 @@ class PolicyholderRepository:
             search: Search term for first_name, last_name, or email
 
         Returns:
-            List of Policyholder instances
+            List of PolicyHolder instances
         """
-        stmt = select(Policyholder)
+        stmt = select(PolicyHolder)
 
         # Apply filters
         if email:
-            stmt = stmt.where(Policyholder.email.ilike(f"%{email}%"))
+            stmt = stmt.where(PolicyHolder.email.ilike(f"%{email}%"))
 
         if is_active is not None:
-            stmt = stmt.where(Policyholder.is_active == is_active)
+            stmt = stmt.where(PolicyHolder.is_active == is_active)
 
         if search:
             search_pattern = f"%{search}%"
             stmt = stmt.where(
                 or_(
-                    Policyholder.first_name.ilike(search_pattern),
-                    Policyholder.last_name.ilike(search_pattern),
-                    Policyholder.email.ilike(search_pattern),
+                    PolicyHolder.first_name.ilike(search_pattern),
+                    PolicyHolder.last_name.ilike(search_pattern),
+                    PolicyHolder.email.ilike(search_pattern),
                 )
             )
 
         # Apply pagination and ordering
-        stmt = stmt.order_by(Policyholder.created_at.desc())
+        stmt = stmt.order_by(PolicyHolder.created_at.desc())
         stmt = stmt.offset(skip).limit(limit)
 
         result = await self.session.execute(stmt)
@@ -134,22 +134,22 @@ class PolicyholderRepository:
         """
         from sqlalchemy import func
 
-        stmt = select(func.count()).select_from(Policyholder)
+        stmt = select(func.count()).select_from(PolicyHolder)
 
         # Apply same filters as get_all
         if email:
-            stmt = stmt.where(Policyholder.email.ilike(f"%{email}%"))
+            stmt = stmt.where(PolicyHolder.email.ilike(f"%{email}%"))
 
         if is_active is not None:
-            stmt = stmt.where(Policyholder.is_active == is_active)
+            stmt = stmt.where(PolicyHolder.is_active == is_active)
 
         if search:
             search_pattern = f"%{search}%"
             stmt = stmt.where(
                 or_(
-                    Policyholder.first_name.ilike(search_pattern),
-                    Policyholder.last_name.ilike(search_pattern),
-                    Policyholder.email.ilike(search_pattern),
+                    PolicyHolder.first_name.ilike(search_pattern),
+                    PolicyHolder.last_name.ilike(search_pattern),
+                    PolicyHolder.email.ilike(search_pattern),
                 )
             )
 
@@ -159,8 +159,8 @@ class PolicyholderRepository:
     async def update(
         self,
         policyholder_id: UUID,
-        data: PolicyholderUpdate,
-    ) -> Optional[Policyholder]:
+        data: PolicyHolderUpdate,
+    ) -> Optional[PolicyHolder]:
         """Update a policyholder.
 
         Args:
@@ -168,7 +168,7 @@ class PolicyholderRepository:
             data: Update data (only provided fields will be updated)
 
         Returns:
-            Updated Policyholder instance if found, None otherwise
+            Updated PolicyHolder instance if found, None otherwise
         """
         policyholder = await self.get_by_id(policyholder_id)
         if not policyholder:

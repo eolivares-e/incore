@@ -5,13 +5,11 @@ including validation rules, policy number generation, and complex operations.
 """
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException, ValidationException
-from app.domains.policies.models import Coverage, Policy
 from app.domains.policies.repository import PolicyRepository
 from app.domains.policies.schemas import (
     CoverageCreate,

@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the Policyholders domain."""
+"""SQLAlchemy models for the Policy Holders domain."""
 
 from datetime import date, datetime
 from uuid import uuid4
@@ -11,14 +11,14 @@ from app.core.database import Base
 from app.shared.enums import Gender, IdentificationType
 
 
-class Policyholder(Base):
-    """Policyholder (customer) model.
+class PolicyHolder(Base):
+    """Policy Holder (customer) model.
 
-    Represents an insurance policyholder with personal information,
+    Represents an insurance policy holder with personal information,
     contact details, and identification.
     """
 
-    __tablename__ = "policyholders"
+    __tablename__ = "policy_holders"
 
     # Primary Key
     id: Mapped[UUID] = mapped_column(
@@ -116,28 +116,28 @@ class Policyholder(Base):
     )
 
     # Relationships
-    policies: Mapped[list["Policy"]] = relationship(  # noqa: F821
+    policies: Mapped[list["Policy"]] = relationship(
         "Policy",
-        back_populates="policyholder",
+        back_populates="policy_holder",
         lazy="selectin",
     )
 
     def __repr__(self) -> str:
-        """String representation of Policyholder."""
+        """String representation of PolicyHolder."""
         return (
-            f"<Policyholder(id={self.id}, "
+            f"<PolicyHolder(id={self.id}, "
             f"name='{self.first_name} {self.last_name}', "
             f"email='{self.email}')>"
         )
 
     @property
     def full_name(self) -> str:
-        """Get the full name of the policyholder."""
+        """Get the full name of the policy holder."""
         return f"{self.first_name} {self.last_name}"
 
     @property
     def age(self) -> int:
-        """Calculate the age of the policyholder."""
+        """Calculate the age of the policy holder."""
         today = date.today()
         return (
             today.year

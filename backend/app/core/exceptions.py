@@ -3,7 +3,7 @@
 from typing import Any
 
 
-class InsuranceCoreException(Exception):
+class InsuranceCoreError(Exception):
     """Base exception for all Insurance Core errors."""
 
     def __init__(
@@ -18,7 +18,7 @@ class InsuranceCoreException(Exception):
         super().__init__(self.message)
 
 
-class NotFoundException(InsuranceCoreException):
+class NotFoundException(InsuranceCoreError):
     """Exception raised when a requested resource is not found."""
 
     def __init__(
@@ -27,7 +27,7 @@ class NotFoundException(InsuranceCoreException):
         super().__init__(message=message, status_code=404, details=details)
 
 
-class ValidationException(InsuranceCoreException):
+class ValidationException(InsuranceCoreError):
     """Exception raised when validation fails."""
 
     def __init__(
@@ -36,7 +36,7 @@ class ValidationException(InsuranceCoreException):
         super().__init__(message=message, status_code=400, details=details)
 
 
-class AuthenticationException(InsuranceCoreException):
+class AuthenticationException(InsuranceCoreError):
     """Exception raised when authentication fails."""
 
     def __init__(
@@ -47,7 +47,7 @@ class AuthenticationException(InsuranceCoreException):
         super().__init__(message=message, status_code=401, details=details)
 
 
-class AuthorizationException(InsuranceCoreException):
+class AuthorizationException(InsuranceCoreError):
     """Exception raised when authorization fails."""
 
     def __init__(
@@ -58,7 +58,7 @@ class AuthorizationException(InsuranceCoreException):
         super().__init__(message=message, status_code=403, details=details)
 
 
-class DuplicateException(InsuranceCoreException):
+class DuplicateException(InsuranceCoreError):
     """Exception raised when trying to create a duplicate resource."""
 
     def __init__(
@@ -69,7 +69,7 @@ class DuplicateException(InsuranceCoreException):
         super().__init__(message=message, status_code=409, details=details)
 
 
-class BusinessRuleException(InsuranceCoreException):
+class BusinessRuleException(InsuranceCoreError):
     """Exception raised when a business rule is violated."""
 
     def __init__(
@@ -80,7 +80,7 @@ class BusinessRuleException(InsuranceCoreException):
         super().__init__(message=message, status_code=422, details=details)
 
 
-class ExternalServiceException(InsuranceCoreException):
+class ExternalServiceException(InsuranceCoreError):
     """Exception raised when an external service call fails."""
 
     def __init__(
