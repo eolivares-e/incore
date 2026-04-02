@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 0 - Foundation & Infrastructure (Ready for Review)
+- **Current Phase**: Phase 1 - Shared Domain Models & Enums
 - **Progress**: 1/9 Phases Complete (11%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟡 In Review
+- **Status**: 🟢 Phase 0 Complete, Ready for Phase 1
 
 ---
 
@@ -12,7 +12,7 @@
 
 | Phase | Name | Status | PR Link | Completion |
 |-------|------|--------|---------|------------|
-| 0 | Foundation & Infrastructure | 🟡 In Review | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
+| 0 | Foundation & Infrastructure | 🟢 Complete | [PR #1](https://github.com/eolivares-e/incore/pull/1) | 100% |
 | 1 | Shared Domain Models & Enums | ⚪ Not Started | - | 0% |
 | 2 | Policyholders Domain | ⚪ Not Started | - | 0% |
 | 3 | Policies Domain | ⚪ Not Started | - | 0% |
@@ -90,9 +90,9 @@ domains/{domain_name}/
 
 **Objective**: Setup basic infrastructure and dependencies
 
-**Status**: 🟡 In Review  
+**Status**: 🟢 Complete  
 **Branch**: `feature/phase-0-foundation`  
-**PR**: [#1](https://github.com/eolivares-e/incore/pull/1)  
+**PR**: [#1](https://github.com/eolivares-e/incore/pull/1) ✅ **MERGED**  
 **Started**: 2026-04-02  
 **Completed**: 2026-04-02
 
