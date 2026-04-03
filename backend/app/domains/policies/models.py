@@ -128,6 +128,12 @@ class Policy(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    underwriting_reviews: Mapped[list["UnderwritingReview"]] = relationship(  # noqa: F821
+        "UnderwritingReview",
+        back_populates="policy",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         """String representation of Policy."""

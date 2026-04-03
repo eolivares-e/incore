@@ -140,6 +140,12 @@ class Quote(Base):
         back_populates="quotes",
         lazy="joined",
     )
+    underwriting_reviews: Mapped[list["UnderwritingReview"]] = relationship(  # noqa: F821
+        "UnderwritingReview",
+        back_populates="quote",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     # Indexes
     __table_args__ = (
