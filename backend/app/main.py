@@ -10,6 +10,7 @@ from app.domains.pricing.router import (
     pricing_rules_router,
     quotes_router,
 )
+from app.domains.underwriting.router import router as underwriting_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -25,6 +26,7 @@ app.include_router(policy_holders_router, prefix=settings.API_V1_STR)
 app.include_router(policies_router, prefix=settings.API_V1_STR)
 app.include_router(quotes_router, prefix=settings.API_V1_STR)
 app.include_router(pricing_rules_router, prefix=settings.API_V1_STR)
+app.include_router(underwriting_router, prefix=settings.API_V1_STR)
 
 # CORS middleware
 app.add_middleware(
