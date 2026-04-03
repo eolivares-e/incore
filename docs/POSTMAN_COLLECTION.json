@@ -1,0 +1,967 @@
+{
+  "info": {
+    "name": "Insurance Core API",
+    "_postman_id": "insurance-core-api-v1",
+    "description": "Complete API collection for Insurance Core system with authentication, policies, quotes, billing, and workflows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "policyholderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "quoteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "policyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 - Setup & Auth",
+      "item": [
+        {
+          "name": "Register User (CUSTOMER)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('userId', jsonData.id);",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"full_name\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account with CUSTOMER role. Returns user details and JWT tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password. Returns access token (30min) and refresh token (7 days)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get currently authenticated user details."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Get new access token using refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout (clear tokens on client side)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for registration, login, token management."
+    },
+    {
+      "name": "01 - Policyholders",
+      "item": [
+        {
+          "name": "Create Policyholder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('policyholderId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1-555-123-4567\",\n  \"date_of_birth\": \"1990-01-15\",\n  \"gender\": \"male\",\n  \"street_address\": \"123 Main Street\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"zip_code\": \"10001\",\n  \"country\": \"USA\",\n  \"identification_type\": \"driver_license\",\n  \"identification_number\": \"DL123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policyholders",
+              "host": ["{{baseUrl}}"],
+              "path": ["policyholders"]
+            },
+            "description": "Create a new policyholder record. Requires AGENT+ role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policyholder by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/policyholders/{{policyholderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["policyholders", "{{policyholderId}}"]
+            },
+            "description": "Get policyholder details by ID. CUSTOMER role can only access their own data."
+          },
+          "response": []
+        },
+        {
+          "name": "List Policyholders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/policyholders?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["policyholders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all policyholders with pagination and filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Policyholder",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-999-8888\",\n  \"street_address\": \"456 Oak Avenue\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policyholders/{{policyholderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["policyholders", "{{policyholderId}}"]
+            },
+            "description": "Update policyholder information. Requires AGENT+ role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Policyholder (customer) management endpoints."
+    },
+    {
+      "name": "02 - Quotes",
+      "item": [
+        {
+          "name": "Create Quote",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('quoteId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy_holder_id\": \"{{policyholderId}}\",\n  \"policy_type\": \"auto\",\n  \"requested_coverage_amount\": 500000.00,\n  \"notes\": \"Customer interested in comprehensive auto coverage\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quotes",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes"]
+            },
+            "description": "Create a new quote with automatic premium calculation and risk assessment."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Quote by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes/{{quoteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes", "{{quoteId}}"]
+            },
+            "description": "Get quote details by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "List Quotes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                },
+                {
+                  "key": "policy_holder_id",
+                  "value": "{{policyholderId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all quotes with pagination and filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Accept Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quotes/{{quoteId}}/accept",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes", "{{quoteId}}", "accept"]
+            },
+            "description": "Accept quote and convert to policy immediately (Phase 4 - no underwriting gate)."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Quote",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quotes/{{quoteId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes", "{{quoteId}}", "reject"]
+            },
+            "description": "Reject a quote. Requires AGENT+ role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Quote management with automatic pricing and risk calculation."
+    },
+    {
+      "name": "03 - Policies",
+      "item": [
+        {
+          "name": "Create Policy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('policyId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyholder_id\": \"{{policyholderId}}\",\n  \"policy_type\": \"auto\",\n  \"premium_amount\": 1200.00,\n  \"start_date\": \"2026-05-01\",\n  \"end_date\": \"2027-05-01\",\n  \"description\": \"Auto insurance policy\",\n  \"coverages\": [\n    {\n      \"coverage_type\": \"liability\",\n      \"coverage_name\": \"Liability Coverage\",\n      \"coverage_amount\": 100000.00,\n      \"deductible\": 500.00,\n      \"description\": \"Covers bodily injury and property damage\"\n    },\n    {\n      \"coverage_type\": \"collision\",\n      \"coverage_name\": \"Collision Coverage\",\n      \"coverage_amount\": 50000.00,\n      \"deductible\": 1000.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "description": "Create a new policy with coverages. Requires AGENT+ role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/policies/{{policyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "{{policyId}}"]
+            },
+            "description": "Get policy details by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/policies?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                },
+                {
+                  "key": "policyholder_id",
+                  "value": "{{policyholderId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all policies with pagination and filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Coverage to Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverage_type\": \"comprehensive\",\n  \"coverage_name\": \"Comprehensive Coverage\",\n  \"coverage_amount\": 75000.00,\n  \"deductible\": 750.00,\n  \"description\": \"Covers non-collision damage\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policies/{{policyId}}/coverages",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "{{policyId}}", "coverages"]
+            },
+            "description": "Add a coverage to a policy. Only works on DRAFT policies."
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Policy",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/policies/{{policyId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "{{policyId}}", "activate"]
+            },
+            "description": "Activate a DRAFT policy (transition to ACTIVE status)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Policy and coverage management."
+    },
+    {
+      "name": "04 - Underwriting",
+      "item": [
+        {
+          "name": "Create Underwriting Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quote_id\": \"{{quoteId}}\",\n  \"notes\": \"High-value policy requires review\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/underwriting/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["underwriting", "reviews"]
+            },
+            "description": "Create underwriting review for a quote. Requires UNDERWRITER+ role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/underwriting/reviews/pending/all?size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["underwriting", "reviews", "pending", "all"],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all pending underwriting reviews, sorted by highest risk first."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Approved after verification\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/underwriting/reviews/{review_id}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["underwriting", "reviews", "{review_id}", "approve"]
+            },
+            "description": "Approve an underwriting review. Replace {review_id} with actual ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Risk level too high - insufficient documentation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/underwriting/reviews/{review_id}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["underwriting", "reviews", "{review_id}", "reject"]
+            },
+            "description": "Reject an underwriting review. Notes are REQUIRED."
+          },
+          "response": []
+        }
+      ],
+      "description": "Underwriting and risk assessment."
+    },
+    {
+      "name": "05 - Billing",
+      "item": [
+        {
+          "name": "Create Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('invoiceId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy_id\": \"{{policyId}}\",\n  \"amount_due\": 1200.00,\n  \"due_date\": \"2026-05-02\",\n  \"notes\": \"First year premium payment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "invoices"]
+            },
+            "description": "Create an invoice for a policy. Requires AGENT+ role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invoice by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing/invoices/{{invoiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "invoices", "{{invoiceId}}"]
+            },
+            "description": "Get invoice details by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_id\": \"{{invoiceId}}\",\n  \"amount\": 1200.00,\n  \"return_url\": \"https://example.com/payment-success\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/payments/create-intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "payments", "create-intent"]
+            },
+            "description": "Create Stripe PaymentIntent. Returns client_secret for frontend confirmation."
+          },
+          "response": []
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing/payments?skip=0&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "payments"],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List all payments with pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"customer_request\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/payments/{payment_id}/refund",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "payments", "{payment_id}", "refund"]
+            },
+            "description": "Refund a completed payment. Requires AGENT+ role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Billing, invoicing, and Stripe payment integration."
+    },
+    {
+      "name": "06 - Workflows",
+      "item": [
+        {
+          "name": "Quote-to-Policy Workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quote_id\": \"{{quoteId}}\",\n  \"skip_underwriting\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workflows/quote-to-policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["workflows", "quote-to-policy"]
+            },
+            "description": "Execute complete quote-to-policy workflow: underwriting → policy → invoice. Requires AGENT+ role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Cross-domain orchestration workflows."
+    },
+    {
+      "name": "07 - Admin",
+      "item": [
+        {
+          "name": "Create Pricing Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto - Low Risk Base Rate\",\n  \"description\": \"Base pricing for low-risk auto insurance\",\n  \"policy_type\": \"auto\",\n  \"risk_level\": \"low\",\n  \"base_premium\": 800.00,\n  \"multiplier_factors\": {\n    \"coverage_per_100k\": 0.05,\n    \"young_driver_multiplier\": 1.2\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pricing-rules",
+              "host": ["{{baseUrl}}"],
+              "path": ["pricing-rules"]
+            },
+            "description": "Create pricing rule. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "50"
+                },
+                {
+                  "key": "role",
+                  "value": "CUSTOMER",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all users. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Change User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"AGENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{user_id}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{user_id}", "role"]
+            },
+            "description": "Change user role (CUSTOMER, AGENT, UNDERWRITER, ADMIN). Requires ADMIN role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin-only endpoints for system configuration."
+    },
+    {
+      "name": "99 - Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/../health",
+              "host": ["{{baseUrl}}"],
+              "path": ["..", "health"]
+            },
+            "description": "Comprehensive health check including database connectivity."
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/../health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["..", "health", "ready"]
+            },
+            "description": "Kubernetes readiness probe."
+          },
+          "response": []
+        }
+      ],
+      "description": "Health and monitoring endpoints."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Admin Portal Development Dockerfile
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy workspace root package.json
+COPY package.json yarn.lock* ./
+COPY apps/admin_portal/package.json ./apps/admin_portal/
+
+# Install all workspace dependencies
+RUN yarn install
+
+# Copy all workspace files
+COPY . .
+
+WORKDIR /app/apps/admin_portal
+
+EXPOSE 3002
+
+CMD ["yarn", "dev"]

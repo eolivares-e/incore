@@ -8,7 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Insurance Core (incore)** is a monorepo containing a full-stack insurance management system:
 - **Backend**: FastAPI + Python 3.12 (async) on port 8000
-- **Frontend**: Next.js 15 + TypeScript + React 18 on port 3000
+- **Frontend**: Yarn Workspaces monorepo with multiple Next.js 15 apps:
+  - **Customer Portal**: Port 3000 - Customer-facing policy management
+  - **Sales Funnel**: Port 3001 - Sales and quote generation
 - **Database**: PostgreSQL 16 (async-first with SQLAlchemy 2.0 + asyncpg)
 - **Development**: Docker Compose for local development
 
@@ -50,48 +52,56 @@ pytest tests/test_file.py -v  # Run specific test file
 ### Frontend Setup & Running
 
 ```bash
-# Install dependencies (from /frontend)
+# Install dependencies (from /frontend root)
 yarn install
 
-# Development server
-yarn dev                      # Runs on http://localhost:3000
+# Development servers
+yarn dev:customer             # Customer Portal on http://localhost:3000
+yarn dev:sales               # Sales Funnel on http://localhost:3001
+yarn dev:all                 # Start both apps concurrently
 
-# Testing
-yarn test                     # Run Vitest tests
-yarn test:ui                  # Run tests with UI
-yarn test:coverage            # Run with coverage
+# Build apps
+yarn build:customer          # Build customer portal
+yarn build:sales             # Build sales funnel
+yarn build:all               # Build all apps
 
-# Linting
-yarn lint                     # Run ESLint
+# Testing & Linting
+yarn test                    # Run tests for all apps
+yarn lint                    # Run ESLint on all apps
 
-# Build for production
-yarn build
-yarn start
+# Workspace-specific commands
+yarn workspace customer-portal dev      # Run customer portal dev server
+yarn workspace sales-funnel build       # Build sales funnel
 ```
 
 ### Docker
 
 ```bash
 # From root directory
-docker-compose up             # Start all services (postgres, backend, frontend)
-docker-compose up -d          # Start in background
-docker-compose down           # Stop services
-docker-compose logs -f        # View logs
+docker-compose up                    # Start all services (postgres, backend, both frontends)
+docker-compose up customer_portal    # Start only customer portal
+docker-compose up sales_funnel       # Start only sales funnel
+docker-compose up -d                 # Start in background
+docker-compose down                  # Stop services
+docker-compose logs -f               # View logs
 ```
 
 ### Local Development
 
 ```bash
-# Start both services (run in separate terminals from root):
+# Option 1: Docker (recommended)
 docker-compose up
 
-# OR start individually:
-cd backend && uvicorn app.main:app --reload     # Port 8000
-cd frontend && yarn dev                          # Port 3000
+# Option 2: Run services individually (separate terminals):
+cd backend && uvicorn app.main:app --reload    # Port 8000
+cd frontend && yarn dev:customer                # Port 3000
+cd frontend && yarn dev:sales                   # Port 3001
 
-# API docs: http://localhost:8000/docs (Swagger)
-# API ReDoc: http://localhost:8000/redoc
-# Frontend: http://localhost:3000
+# Access points:
+# - API docs: http://localhost:8000/docs (Swagger)
+# - API ReDoc: http://localhost:8000/redoc
+# - Customer Portal: http://localhost:3000
+# - Sales Funnel: http://localhost:3001
 ```
 
 ---
@@ -169,24 +179,61 @@ domains/{domain}/
 
 ## Frontend Architecture
 
-### Key Files & Directories
+### Directory Structure
 
-- `src/app/` - Next.js 14 App Router (pages, layouts, components)
-- `next.config.js` - Next.js configuration
-- `tailwind.config.js` - TailwindCSS config (if using)
-- `vitest.config.ts` - Vitest configuration
+The frontend is organized as a Yarn Workspaces monorepo:
+
+```
+frontend/
+├── apps/
+│   ├── customer_portal/          # Customer-facing app (Port 3000)
+│   │   ├── src/app/             # Next.js 15 App Router
+│   │   ├── public/              # Static assets
+│   │   ├── package.json         # App-specific dependencies
+│   │   ├── next.config.js       # Next.js configuration
+│   │   ├── tsconfig.json        # TypeScript config (extends base)
+│   │   └── vitest.config.ts     # Test configuration
+│   │
+│   └── sales_funnel/            # Sales/marketing app (Port 3001)
+│       ├── src/app/             # Next.js 15 App Router
+│       ├── public/              # Static assets
+│       ├── package.json         # App-specific dependencies
+│       ├── next.config.js       # Next.js configuration
+│       ├── tsconfig.json        # TypeScript config (extends base)
+│       └── vitest.config.ts     # Test configuration
+│
+├── package.json                 # Root workspace configuration
+├── tsconfig.base.json          # Shared TypeScript config
+├── .env.example                # Shared environment variables
+├── Dockerfile.customer         # Customer portal Docker image
+└── Dockerfile.sales            # Sales funnel Docker image
+```
 
 ### Tech Stack
 
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
+- **Package Manager**: Yarn Workspaces
 - **Testing**: Vitest
 - **Linting**: ESLint with next/eslint-plugin
+
+### Apps Overview
+
+**Customer Portal** (`apps/customer_portal/`):
+- Port: 3000
+- Purpose: Customer-facing policy management
+- Features: View policies, manage policy holders, track claims, update personal info
+
+**Sales Funnel** (`apps/sales_funnel/`):
+- Port: 3001
+- Purpose: Sales and quote generation
+- Features: Request quotes, compare plans, purchase policies, agent communication
 
 ### API Integration
 
 - Backend API base URL: `process.env.NEXT_PUBLIC_API_URL` (default: http://localhost:8000)
 - API docs available at: http://localhost:8000/docs
+- Both apps share the same backend API
 
 ---
 
@@ -283,14 +330,16 @@ Example: `feat: add policy renewal endpoint` or `fix: enforce PEP 8 naming conve
 
 - `pyproject.toml` - Dependencies, ruff config, pytest config
 - `alembic.ini` - Alembic migration configuration
-- `docker-compose.yml` - Full stack setup with postgres, backend, frontend
+- `docker-compose.yml` - Full stack setup with postgres, backend, customer_portal, sales_funnel
 - `.env.example` - Example environment variables (copy to `.env`)
 
 ### Frontend Config Files
 
-- `package.json` - Scripts, dependencies
-- `tsconfig.json` - TypeScript configuration
-- `vitest.config.ts` - Test configuration
+- `frontend/package.json` - Root workspace configuration
+- `frontend/tsconfig.base.json` - Shared TypeScript configuration
+- `frontend/apps/{app}/package.json` - App-specific dependencies
+- `frontend/apps/{app}/tsconfig.json` - App-specific TypeScript config
+- `frontend/apps/{app}/vitest.config.ts` - Test configuration per app
 
 ### Environment Variables
 
@@ -302,6 +351,7 @@ Example: `feat: add policy renewal endpoint` or `fix: enforce PEP 8 naming conve
 
 **Frontend** (`.env.local` or docker-compose):
 - `NEXT_PUBLIC_API_URL` - Backend API URL (must start with `NEXT_PUBLIC_`)
+- Shared across both customer_portal and sales_funnel apps
 
 ---
 

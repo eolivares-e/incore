@@ -1,0 +1,22 @@
+# Sales Funnel Development Dockerfile
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy workspace root package.json
+COPY package.json yarn.lock* ./
+COPY apps/sales_funnel/package.json ./apps/sales_funnel/
+
+# Install all workspace dependencies
+RUN yarn install
+
+# Copy all workspace files
+COPY . .
+
+WORKDIR /app/apps/sales_funnel
+
+EXPOSE 3001
+
+CMD ["yarn", "dev"]

@@ -1,0 +1,138 @@
+Insurance Core Documentation Structure
+========================================
+
+docs/
+│
+├── 📖 README.md (345 lines)
+│   ├── Documentation overview
+│   ├── Quick start for frontend developers
+│   ├── Common use cases (4 examples):
+│   │   ├── Customer self-service quote
+│   │   ├── Agent creating policy
+│   │   ├── High-risk underwriting flow
+│   │   └── Processing payment
+│   ├── Authentication guide (JWT)
+│   ├── User roles explanation
+│   ├── System capabilities
+│   └── Troubleshooting section
+│
+├── 🚀 GETTING_STARTED.md (384 lines)
+│   ├── 5-minute quick start guide
+│   ├── Step-by-step setup instructions
+│   ├── Complete example workflow:
+│   │   ├── Create user
+│   │   ├── Create policyholder
+│   │   ├── Create quote
+│   │   ├── Accept quote
+│   │   └── Convert to policy
+│   ├── Common issues and solutions
+│   ├── Useful CLI commands
+│   └── API documentation links
+│
+├── 📊 WORKFLOW_DIAGRAMS.md (843 lines)
+│   ├── 8 Mermaid.js diagrams:
+│   │   ├── 1. Complete Customer Journey (sequence)
+│   │   ├── 2. Quote-to-Policy Workflow (flowchart)
+│   │   ├── 3. Underwriting Decision Process (flowchart)
+│   │   ├── 4. Payment Processing Flow (sequence)
+│   │   ├── 5. Policy Status State Machine (state)
+│   │   ├── 6. Authentication Flow (sequence)
+│   │   ├── 7. Role-Based Access Control (flowchart)
+│   │   └── 8. Invoice Lifecycle (state)
+│   ├── Business rules for each workflow
+│   └── Step-by-step explanations
+│
+├── ⚡ QUICK_REFERENCE.md (640 lines)
+│   ├── API Endpoints Summary (71 endpoints)
+│   │   ├── Authentication & Users (11)
+│   │   ├── Policyholders (7)
+│   │   ├── Policies & Coverages (11)
+│   │   ├── Quotes & Pricing (13)
+│   │   ├── Underwriting (7)
+│   │   ├── Billing & Payments (14)
+│   │   ├── Workflows (1)
+│   │   └── Health & System (4)
+│   ├── Status Values:
+│   │   ├── Policy statuses (7)
+│   │   ├── Quote statuses (7)
+│   │   ├── Invoice statuses (8)
+│   │   ├── Payment statuses (7)
+│   │   └── Underwriting statuses (6)
+│   ├── Enums & Constants:
+│   │   ├── User roles (4)
+│   │   ├── Policy types (4)
+│   │   ├── Coverage types (18)
+│   │   ├── Risk levels (4)
+│   │   └── Payment methods (6)
+│   ├── HTTP Status Codes (10)
+│   ├── Date & Time Formats
+│   ├── Role Permissions Matrix
+│   ├── Pagination Parameters
+│   ├── Auto-Generated Field Formats
+│   └── Business Rules Summary
+│
+├── 🔧 POSTMAN_COLLECTION.json (967 lines)
+│   ├── 40 pre-configured API requests
+│   ├── 8 organized folders:
+│   │   ├── 00 - Setup & Auth (5 requests)
+│   │   ├── 01 - Policyholders (4 requests)
+│   │   ├── 02 - Quotes (5 requests)
+│   │   ├── 03 - Policies (5 requests)
+│   │   ├── 04 - Underwriting (4 requests)
+│   │   ├── 05 - Billing (5 requests)
+│   │   ├── 06 - Workflows (1 request)
+│   │   ├── 07 - Admin (3 requests)
+│   │   └── 99 - Health (2 requests)
+│   ├── Auto-token extraction (test scripts)
+│   ├── Environment variables configured
+│   ├── Bearer auth pre-configured
+│   └── Example request bodies included
+│
+└── 🗂️ INDEX.md (238 lines)
+    ├── File structure overview
+    ├── "Where to start" by role
+    ├── What's in each file (detailed)
+    ├── Search by topic guide
+    ├── Search by user role guide
+    ├── Documentation statistics
+    ├── Checklist for frontend developers
+    └── Getting help section
+
+---
+
+Documentation Metrics:
+======================
+Total Files: 6
+Total Lines: 3,417
+Total Size: ~108 KB
+Diagrams: 8 (Mermaid.js)
+Use Cases: 4 complete examples
+Endpoints: 40 documented (71 available)
+User Roles: All 4 covered
+Workflows: 8 visual diagrams
+
+File Purposes:
+==============
+README.md          → Start here, overview & examples
+GETTING_STARTED.md → 5-minute quick start
+WORKFLOW_DIAGRAMS  → Visual business flows
+QUICK_REFERENCE.md → Lookup while coding
+POSTMAN_COLLECTION → Test API interactively
+INDEX.md           → Navigate documentation
+
+Recommended Reading Order:
+==========================
+1. GETTING_STARTED.md (5 min)
+2. README.md (10 min)
+3. WORKFLOW_DIAGRAMS.md (15 min)
+4. Import POSTMAN_COLLECTION.json
+5. Bookmark QUICK_REFERENCE.md
+
+All documentation is:
+=====================
+✓ User-facing (no code internals)
+✓ Workflow-focused (business processes)
+✓ Visual (Mermaid diagrams)
+✓ Interactive (Postman collection)
+✓ Comprehensive (all roles covered)
+✓ Ready for frontend team

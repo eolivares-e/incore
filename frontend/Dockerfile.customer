@@ -1,0 +1,22 @@
+# Customer Portal Development Dockerfile
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy workspace root package.json
+COPY package.json yarn.lock* ./
+COPY apps/customer_portal/package.json ./apps/customer_portal/
+
+# Install all workspace dependencies
+RUN yarn install
+
+# Copy all workspace files
+COPY . .
+
+WORKDIR /app/apps/customer_portal
+
+EXPOSE 3000
+
+CMD ["yarn", "dev"]

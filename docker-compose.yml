@@ -16,10 +16,11 @@ services:
       timeout: 3s
       retries: 5
 
-  frontend:
+  customer_portal:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.customer
+    container_name: incore-customer-portal
     ports:
       - "3000:3000"
     environment:
@@ -27,7 +28,39 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
+      - /app/apps/customer_portal/.next
+    depends_on:
+      - backend
+
+  sales_funnel:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.sales
+    container_name: incore-sales-funnel
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/apps/sales_funnel/.next
+    depends_on:
+      - backend
+
+  admin_portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.admin
+    container_name: incore-admin-portal
+    ports:
+      - "3002:3002"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/apps/admin_portal/.next
     depends_on:
       - backend
 
