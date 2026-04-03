@@ -121,6 +121,11 @@ class PolicyHolder(Base):
         back_populates="policy_holder",
         lazy="selectin",
     )
+    quotes: Mapped[list["Quote"]] = relationship(  # noqa: F821
+        "Quote",
+        back_populates="policy_holder",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         """String representation of PolicyHolder."""
