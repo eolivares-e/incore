@@ -134,6 +134,12 @@ class Policy(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    invoices: Mapped[list["Invoice"]] = relationship(  # noqa: F821
+        "Invoice",
+        back_populates="policy",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         """String representation of Policy."""
