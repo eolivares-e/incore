@@ -12,8 +12,12 @@ from app.core.database import Base
 from app.core.config import settings
 
 # Import all models so Alembic can detect them
+from app.domains.billing.models import Invoice, Payment  # noqa: F401
 from app.domains.policies.models import Coverage, Policy  # noqa: F401
 from app.domains.policy_holders.models import PolicyHolder  # noqa: F401
+from app.domains.pricing.models import PricingRule, Quote  # noqa: F401
+from app.domains.underwriting.models import UnderwritingReview  # noqa: F401
+from app.domains.users.models import User  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

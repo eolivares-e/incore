@@ -21,6 +21,8 @@ from app.domains.billing.schemas import (
     StripePaymentIntentResponse,
 )
 from app.domains.billing.service import BillingService, PaymentService
+from app.domains.users.models import User, UserRole
+from app.domains.users.router import get_current_user, require_role
 from app.shared.schemas.base import MessageResponse, PaginationParams
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -59,9 +61,12 @@ async def get_payment_service(
 )
 async def create_invoice(
     data: InvoiceCreate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceResponse:
     """Create a new invoice.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Invoice number is auto-generated (format: INV-YYYYMMDD-XXXX)
@@ -73,6 +78,8 @@ async def create_invoice(
     **Returns:**
     - 201: Invoice created successfully
     - 400: Validation error
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     - 422: Invalid input data
     """
@@ -88,14 +95,21 @@ async def create_invoice(
 )
 async def get_invoice(
     invoice_id: UUID,
+    current_user: User = Depends(get_current_user),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceResponse:
     """Get an invoice by ID.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own invoices.
+
     **Returns:**
     - 200: Invoice found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's invoice)
     - 404: Invoice not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     invoice = await service.get_invoice(invoice_id)
     return InvoiceResponse.model_validate(invoice)
 
@@ -109,9 +123,13 @@ async def get_invoice(
 async def list_invoices(
     pagination: Annotated[PaginationParams, Depends()],
     filters: Annotated[InvoiceFilterParams, Depends()],
+    current_user: User = Depends(get_current_user),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceListResponse:
     """List all invoices with pagination and filtering.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only see their own invoices.
 
     **Query Parameters:**
     - `skip`: Number of records to skip (pagination)
@@ -126,7 +144,9 @@ async def list_invoices(
 
     **Returns:**
     - 200: List of invoices with pagination metadata
+    - 401: Not authenticated
     """
+    # TODO: For CUSTOMER role, filter to only their invoices
     invoices, total = await service.list_invoices(
         skip=pagination.skip, limit=pagination.limit, filters=filters
     )
@@ -148,13 +168,20 @@ async def list_invoices(
 async def get_invoices_by_policy(
     policy_id: UUID,
     pagination: Annotated[PaginationParams, Depends()],
+    current_user: User = Depends(get_current_user),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceListResponse:
     """Get all invoices for a specific policy.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view invoices for their policies.
+
     **Returns:**
     - 200: List of invoices for the policy
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's policy)
     """
+    # TODO: Add ownership validation for CUSTOMER role
     invoices, total = await service.get_invoices_by_policy(
         policy_id, skip=pagination.skip, limit=pagination.limit
     )
@@ -175,12 +202,17 @@ async def get_invoices_by_policy(
 )
 async def get_overdue_invoices(
     pagination: Annotated[PaginationParams, Depends()],
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceListResponse:
     """Get all overdue invoices.
 
+    **Required Role:** AGENT, UNDERWRITER, or ADMIN
+
     **Returns:**
     - 200: List of overdue invoices
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     """
     invoices, total = await service.get_overdue_invoices(
         skip=pagination.skip, limit=pagination.limit
@@ -203,9 +235,12 @@ async def get_overdue_invoices(
 async def update_invoice(
     invoice_id: UUID,
     data: InvoiceUpdate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: BillingService = Depends(get_billing_service),
 ) -> InvoiceResponse:
     """Update an invoice.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Cannot modify paid invoices
@@ -214,6 +249,8 @@ async def update_invoice(
     **Returns:**
     - 200: Invoice updated successfully
     - 400: Validation error or invoice is paid
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Invoice not found
     """
     invoice = await service.update_invoice(invoice_id, data)
@@ -228,9 +265,12 @@ async def update_invoice(
 )
 async def delete_invoice(
     invoice_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: BillingService = Depends(get_billing_service),
 ) -> MessageResponse:
     """Delete an invoice.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Cannot delete invoices with payments (amount_paid > 0)
@@ -238,6 +278,8 @@ async def delete_invoice(
     **Returns:**
     - 200: Invoice deleted successfully
     - 400: Invoice has payments
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Invoice not found
     """
     await service.delete_invoice(invoice_id)
@@ -258,9 +300,13 @@ async def delete_invoice(
 )
 async def create_payment_intent(
     data: StripePaymentIntentCreate,
+    current_user: User = Depends(get_current_user),
     service: PaymentService = Depends(get_payment_service),
 ) -> StripePaymentIntentResponse:
     """Create a Stripe PaymentIntent.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can pay their own invoices, AGENT can pay any.
 
     **Stripe-First Flow:**
     1. Client calls this endpoint to create PaymentIntent
@@ -280,8 +326,11 @@ async def create_payment_intent(
     **Returns:**
     - 201: PaymentIntent created successfully
     - 400: Invalid request or invoice already paid
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER paying other's invoice)
     - 404: Invoice not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.create_payment_intent(data)
 
 
@@ -293,14 +342,21 @@ async def create_payment_intent(
 )
 async def get_payment(
     payment_id: UUID,
+    current_user: User = Depends(get_current_user),
     service: PaymentService = Depends(get_payment_service),
 ) -> PaymentResponse:
     """Get a payment by ID.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own payments.
+
     **Returns:**
     - 200: Payment found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's payment)
     - 404: Payment not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     payment = await service.get_payment(payment_id)
     return PaymentResponse.model_validate(payment)
 
@@ -313,13 +369,19 @@ async def get_payment(
 )
 async def list_payments(
     pagination: Annotated[PaginationParams, Depends()],
+    current_user: User = Depends(get_current_user),
     service: PaymentService = Depends(get_payment_service),
 ) -> PaymentListResponse:
     """List all payments with pagination.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only see their own payments.
+
     **Returns:**
     - 200: List of payments with pagination metadata
+    - 401: Not authenticated
     """
+    # TODO: For CUSTOMER role, filter to only their payments
     payments, total = await service.list_payments(
         skip=pagination.skip, limit=pagination.limit
     )
@@ -341,13 +403,20 @@ async def list_payments(
 async def get_payments_by_invoice(
     invoice_id: UUID,
     pagination: Annotated[PaginationParams, Depends()],
+    current_user: User = Depends(get_current_user),
     service: PaymentService = Depends(get_payment_service),
 ) -> PaymentListResponse:
     """Get all payments for a specific invoice.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view payments for their invoices.
+
     **Returns:**
     - 200: List of payments for the invoice
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's invoice)
     """
+    # TODO: Add ownership validation for CUSTOMER role
     payments, total = await service.get_payments_by_invoice(
         invoice_id, skip=pagination.skip, limit=pagination.limit
     )
@@ -369,9 +438,12 @@ async def get_payments_by_invoice(
 async def refund_payment(
     payment_id: UUID,
     refund_request: RefundRequest,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PaymentService = Depends(get_payment_service),
 ) -> PaymentResponse:
     """Refund a payment.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules (Phase 6):**
     - Only full refunds supported in Phase 6
@@ -384,6 +456,8 @@ async def refund_payment(
     **Returns:**
     - 200: Payment refunded successfully
     - 400: Payment not refundable
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Payment not found
     """
     payment = await service.refund_payment(payment_id, refund_request)

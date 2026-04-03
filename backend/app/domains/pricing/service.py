@@ -24,7 +24,7 @@ from app.domains.pricing.schemas import (
     QuoteResponse,
     QuoteUpdate,
 )
-from app.shared.enums import PolicyStatus, PolicyType, QuoteStatus, RiskLevel
+from app.shared.enums import PolicyType, QuoteStatus, RiskLevel
 from app.shared.schemas.base import PaginatedResponse, PaginationParams
 
 
