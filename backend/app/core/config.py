@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     PASSWORD_MIN_LENGTH: int = 8
     BCRYPT_ROUNDS: int = 12
 
+    # Initial Admin User (for CLI command)
+    INITIAL_ADMIN_EMAIL: str = "admin@insurance-core.local"
+
     # Stripe (will be configured by user)
     STRIPE_SECRET_KEY: str = ""
     STRIPE_PUBLISHABLE_KEY: str = ""

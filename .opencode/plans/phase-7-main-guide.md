@@ -16,12 +16,16 @@ Implement JWT-based authentication and role-based access control (RBAC). Foundat
 
 ## Design Decisions
 
-✅ **User Roles**: ADMIN, UNDERWRITER, AGENT, CUSTOMER  
-✅ **Token Strategy**: JWT with access + refresh tokens  
+✅ **User Roles**: ADMIN, UNDERWRITER, AGENT, CUSTOMER (defined in users/models.py)  
+✅ **Token Strategy**: JWT with access + refresh tokens (no rotation - same refresh token for 7 days)  
 ✅ **Password Policy**: Min 8 chars, 1 digit, 1 uppercase, 1 lowercase (already in code)  
-✅ **Protected Endpoints**: All domain endpoints except auth/public  
+✅ **Protected Endpoints**: Phase 8 only - Phase 7 creates auth infrastructure  
 ✅ **User Identification**: Email-based login, UUID internal ID  
 ✅ **Superuser Flag**: For admins to bypass some role restrictions  
+✅ **Admin Creation**: Via CLI command `python -m app.domains.users.cli create-admin`  
+✅ **Admin Credentials**: admin@insurance-core.local / admin (hardcoded for dev)  
+✅ **Token Transmission**: Authorization: Bearer <token> header  
+✅ **Router Structure**: Two separate routers (auth_router + users_router)  
 
 ---
 
@@ -33,7 +37,7 @@ git checkout -b feature/phase-7-auth
 mkdir -p backend/app/domains/users
 ```
 
-### Core Implementation (5 Files)
+### Core Implementation (7 Files)
 
 #### 1. User Model
 **File**: `backend/app/domains/users/models.py` (~150 lines)
@@ -98,9 +102,9 @@ AuthService:
   - Verify password
   - Create tokens
 - refresh_access_token(refresh_token) → access_token
-  - Verify refresh token is valid
+  - Verify refresh token is valid and type="refresh"
   - Create new access token
-  - Optional: return new refresh token
+  - Return SAME refresh token (no rotation for simplicity)
 - get_current_user(token: str) → User
   - Verify access token
   - Get user by ID from token
@@ -109,24 +113,24 @@ AuthService:
   - Check user is superuser OR has required role
 
 #### 5. Router
-**File**: `backend/app/domains/users/router.py` (~250 lines)
+**File**: `backend/app/domains/users/router.py` (~280 lines)
 
-Public Endpoints (no auth required):
-1. `POST /auth/register` - Register new user
-2. `POST /auth/login` - Login (returns tokens)
-3. `POST /auth/refresh` - Refresh access token
+**Two Routers**:
 
-Protected Endpoints (require valid JWT):
-4. `GET /auth/me` - Get current user info
-5. `PUT /auth/me` - Update current user (password, full_name)
-6. `POST /auth/logout` - Logout (client-side token deletion, optional)
+**auth_router** (prefix: `/auth`, 6 endpoints):
+1. `POST /auth/register` - Register new user (public)
+2. `POST /auth/login` - Login (returns tokens) (public)
+3. `POST /auth/refresh` - Refresh access token (public)
+4. `GET /auth/me` - Get current user info (protected)
+5. `PUT /auth/me` - Update current user (protected)
+6. `POST /auth/logout` - Logout (protected, optional)
 
-Admin Endpoints (require ADMIN role):
-7. `GET /users` - List all users (with role filter)
+**users_router** (prefix: `/users`, 5 endpoints - all require ADMIN role):
+7. `GET /users` - List all users (with filters)
 8. `GET /users/{id}` - Get user by ID
-9. `PUT /users/{id}/role` - Change user role (ADMIN only)
-10. `PUT /users/{id}/activate` - Activate user (ADMIN only)
-11. `PUT /users/{id}/deactivate` - Deactivate user (ADMIN only)
+9. `PUT /users/{id}/role` - Change user role
+10. `PUT /users/{id}/activate` - Activate user
+11. `PUT /users/{id}/deactivate` - Deactivate user
 
 **Auth Dependencies**:
 ```python
@@ -153,7 +157,7 @@ def require_role(*roles: UserRole):
 """Users and authentication domain."""
 
 from app.domains.users.models import User, UserRole
-from app.domains.users.router import router
+from app.domains.users.router import auth_router, users_router
 from app.domains.users.schemas import (
     UserCreate,
     UserResponse,
@@ -165,18 +169,38 @@ from app.domains.users.service import AuthService
 __all__ = [
     "User",
     "UserRole",
-    "router",
+    "auth_router",
+    "users_router",
     "UserCreate",
     "UserResponse",
     "TokenResponse",
-    "CurrentUserService",
+    "CurrentUserResponse",
     "AuthService",
 ]
 ```
 
+#### 7. CLI Command
+**File**: `backend/app/domains/users/cli.py` (~120 lines)
+
+**Command**: `python -m app.domains.users.cli create-admin`
+
+Creates initial admin user:
+- Email: admin@insurance-core.local
+- Password: "admin" (hardcoded for development)
+- Full Name: "System Administrator"
+- Role: UserRole.ADMIN
+- is_superuser: True
+- is_active: True
+
+**Behavior**:
+- Check if admin@insurance-core.local already exists
+- If exists: Print "Admin already exists" and exit
+- If not: Create admin user
+- Print success message with credentials
+
 ### Database Migration
 
-#### 7. Create Migration
+#### 8. Create Migration
 ```bash
 cd backend
 alembic revision --autogenerate -m "add users table"
@@ -201,39 +225,24 @@ alembic upgrade head
 
 ### Integration
 
-#### 8. Update Config
+#### 9. Update Config
 **File**: `backend/app/core/config.py`
 
 Optional additions:
 - `INITIAL_ADMIN_EMAIL: str = "admin@insurance-core.local"`
-- `INITIAL_ADMIN_PASSWORD: str = ""`
-- `ENABLE_ADMIN_CREATION: bool = True`
 
-#### 9. Register Router & Dependencies
+#### 10. Register Routers
 **File**: `backend/app/main.py`
 
-Add:
+Add both routers:
 ```python
-from app.domains.users.router import router as users_router
-from app.domains.users.dependencies import get_current_user
+from app.domains.users.router import auth_router, users_router
 
-app.include_router(users_router, prefix=settings.API_V1_STR, tags=["auth"])
+app.include_router(auth_router, prefix=settings.API_V1_STR, tags=["auth"])
+app.include_router(users_router, prefix=settings.API_V1_STR, tags=["users"])
 ```
 
-#### 10. Protect Existing Domain Endpoints
-Update all existing routers (policies, pricing, underwriting, billing):
-- Add `Depends(get_current_user)` to endpoints that should be protected
-- Consider role-based access (e.g., only UNDERWRITER can approve reviews)
-- Leave public endpoints open (e.g., GET /health)
-
-Examples:
-```python
-@router.post("/policies", dependencies=[Depends(require_role(UserRole.ADMIN, UserRole.AGENT))])
-async def create_policy(...)
-
-@router.post("/underwriting/reviews/{id}/approve", dependencies=[Depends(require_role(UserRole.UNDERWRITER))])
-async def approve_review(...)
-```
+**Note**: Endpoint protection (adding auth dependencies to existing routers) is deferred to Phase 8.
 
 ### Testing
 
@@ -301,25 +310,24 @@ git push -u origin feature/phase-7-auth
 
 ## Scope Summary
 
-**Files to Create**: 6 files (~1,120 lines)
-- models.py: ~150 lines
+**Files to Create**: 8 files (~1,700 lines)
+- models.py: ~170 lines
 - schemas.py: ~200 lines
 - repository.py: ~200 lines
 - service.py: ~300 lines
-- router.py: ~250 lines
+- router.py: ~280 lines (two routers)
+- cli.py: ~120 lines
 - __init__.py: ~20 lines
+- test_users.py: ~400 lines (30 tests)
 
-**Files to Modify**: 4 files
-- core/config.py: ~3 lines (optional)
-- main.py: ~5 lines
-- All 5 domain routers: Add auth dependencies (~1-3 lines each)
+**Files to Modify**: 2 files
+- core/config.py: ~2 lines (optional INITIAL_ADMIN_EMAIL)
+- main.py: ~8 lines (register both routers)
 - IMPLEMENTATION_PLAN.md: ~40 lines
-
-**Tests**: 1 file (~400 lines, 30 tests)
 
 **Migration**: 1 (1 table, 4 indexes, 1 constraint)
 
-**Total**: ~1,520 new lines
+**Total**: ~1,700 new lines
 
 ---
 
@@ -335,7 +343,7 @@ git push -u origin feature/phase-7-auth
 
 5. **Backward Compatibility**: Existing endpoints work without auth for now. Protect in Phase 8 cross-domain integration.
 
-6. **Admin Creation**: Consider seed script to create initial ADMIN user
+6. **Admin Creation**: CLI command `python -m app.domains.users.cli create-admin` (credentials: admin@insurance-core.local / admin)
 
 ---
 

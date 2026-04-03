@@ -12,6 +12,7 @@ from app.domains.pricing.router import (
     quotes_router,
 )
 from app.domains.underwriting.router import router as underwriting_router
+from app.domains.users.router import auth_router, users_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -23,6 +24,8 @@ app = FastAPI(
 )
 
 # Include routers
+app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(policy_holders_router, prefix=settings.API_V1_STR)
 app.include_router(policies_router, prefix=settings.API_V1_STR)
 app.include_router(quotes_router, prefix=settings.API_V1_STR)
