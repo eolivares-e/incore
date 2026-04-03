@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.exceptions import InsuranceCoreError
+from app.domains.billing.router import router as billing_router
 from app.domains.policies.router import router as policies_router
 from app.domains.policy_holders.router import router as policy_holders_router
 from app.domains.pricing.router import (
@@ -27,6 +28,7 @@ app.include_router(policies_router, prefix=settings.API_V1_STR)
 app.include_router(quotes_router, prefix=settings.API_V1_STR)
 app.include_router(pricing_rules_router, prefix=settings.API_V1_STR)
 app.include_router(underwriting_router, prefix=settings.API_V1_STR)
+app.include_router(billing_router, prefix=settings.API_V1_STR)
 
 # CORS middleware
 app.add_middleware(

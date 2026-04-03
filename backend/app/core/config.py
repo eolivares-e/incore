@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_TEST_MODE: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
