@@ -6,6 +6,10 @@ from app.core.config import settings
 from app.core.exceptions import InsuranceCoreError
 from app.domains.policies.router import router as policies_router
 from app.domains.policy_holders.router import router as policy_holders_router
+from app.domains.pricing.router import (
+    pricing_rules_router,
+    quotes_router,
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -19,6 +23,8 @@ app = FastAPI(
 # Include routers
 app.include_router(policy_holders_router, prefix=settings.API_V1_STR)
 app.include_router(policies_router, prefix=settings.API_V1_STR)
+app.include_router(quotes_router, prefix=settings.API_V1_STR)
+app.include_router(pricing_rules_router, prefix=settings.API_V1_STR)
 
 # CORS middleware
 app.add_middleware(
