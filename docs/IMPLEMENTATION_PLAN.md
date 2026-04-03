@@ -1,10 +1,10 @@
 # Insurance Core - Implementation Plan
 
 ## 📊 Current Status
-- **Current Phase**: Phase 3 - Policies Domain (🟢 COMPLETE)
-- **Progress**: 3/9 Phases Complete (33%)
+- **Current Phase**: Phase 5 - Underwriting Domain (🟢 COMPLETE)
+- **Progress**: 5/9 Phases Complete (56%)
 - **Last Updated**: 2026-04-02
-- **Status**: 🟢 Phase 3 Complete, PR #5 Updated with PEP 8 Compliance Fixes
+- **Status**: 🟢 Phase 5 Complete, PR #7 Created
 
 ---
 
@@ -16,8 +16,8 @@
 | 1 | Shared Domain Models & Enums | 🟢 Complete | [PR #3](https://github.com/eolivares-e/incore/pull/3) | 100% |
 | 2 | Policyholders Domain | 🟢 Complete | [PR #4](https://github.com/eolivares-e/incore/pull/4) | 100% |
 | 3 | Policies Domain | 🟢 Complete | [PR #5](https://github.com/eolivares-e/incore/pull/5) | 100% |
-| 4 | Pricing/Quoting Domain | ⚪ Not Started | - | 0% |
-| 5 | Underwriting Domain | ⚪ Not Started | - | 0% |
+| 4 | Pricing/Quoting Domain | 🟢 Complete | [PR #6](https://github.com/eolivares-e/incore/pull/6) | 100% |
+| 5 | Underwriting Domain | 🟢 Complete | [PR #7](https://github.com/eolivares-e/incore/pull/7) | 100% |
 | 6 | Billing/Payments Domain | ⚪ Not Started | - | 0% |
 | 7 | Authentication & Authorization | ⚪ Not Started | - | 0% |
 | 8 | Integration & Polish | ⚪ Not Started | - | 0% |
@@ -393,21 +393,56 @@ Add dependencies:
 
 **Objective**: Risk assessment and policy approval
 
-**Status**: ⚪ Not Started  
+**Status**: 🟢 Complete  
 **Branch**: `feature/phase-5-underwriting`  
-**PR**: -  
+**PR**: [#7](https://github.com/eolivares-e/incore/pull/7) ✅ **OPEN**  
+**Started**: 2026-04-02  
+**Completed**: 2026-04-02  
 **Dependencies**: Phase 4
 
 ### Tasks Checklist
-- [ ] Create UnderwritingReview model
-- [ ] Create schemas
-- [ ] Create repository
-- [ ] Create UnderwritingService with risk scoring
-- [ ] Create router
-- [ ] Implement auto-approval rules
-- [ ] Create migrations
-- [ ] Write tests
-- [ ] Update documentation
+- [x] Create UnderwritingReview model
+- [x] Create schemas (8 total: Create, Update, Approve, Reject, Response, List, FilterParams)
+- [x] Create repository with advanced filtering
+- [x] Create UnderwritingService with RiskScoringEngine
+- [x] Create router (8 endpoints)
+- [x] Implement auto-approval rules (risk_score < 30 = AUTO-APPROVE)
+- [x] Create migrations (migration 004)
+- [x] Write tests (22 comprehensive tests, all passing)
+- [x] Update documentation
+- [x] Add relationships to Quote and Policy models
+
+### Implementation Summary
+
+**Models** (`domains/underwriting/models.py`):
+- UnderwritingReview with 15 fields
+- Properties: is_pending, is_decided, is_auto_approved
+- Check constraints: risk_score range (0-100), quote/policy exclusivity
+
+**Business Logic** (`domains/underwriting/service.py`):
+- RiskScoringEngine: Dual calculation methods (quote-based, policy-based)
+- UnderwritingService: Auto-approval workflow, manual operations
+- Auto-approve if risk_score < 30
+- Manual review required if risk_score >= 70
+- Medium risk (30-69) defaults to IN_REVIEW
+
+**API Endpoints** (8 total):
+- POST /reviews - Create review (auto-calculates risk)
+- GET /reviews/{id} - Get by ID
+- GET /reviews - List with filters
+- GET /reviews/pending/all - Pending queue for dashboard
+- PUT /reviews/{id} - Update
+- POST /reviews/{id}/approve - Manual approval
+- POST /reviews/{id}/reject - Manual rejection (notes required)
+
+**Testing**:
+- 22 new tests (models, schemas, risk scoring, service)
+- All 145 tests passing (123 existing + 22 new)
+
+**Files Created**: 8 files, 2136 lines
+- Complete underwriting domain (6 files)
+- Migration 004
+- Comprehensive test suite
 
 ### UnderwritingReview Model Fields
 - id (UUID)
