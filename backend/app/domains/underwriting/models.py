@@ -160,6 +160,7 @@ class UnderwritingReview(Base):
         Index("ix_underwriting_reviews_status_risk_level", "status", "risk_level"),
         Index("ix_underwriting_reviews_quote_id_status", "quote_id", "status"),
         Index("ix_underwriting_reviews_policy_id_status", "policy_id", "status"),
+        Index("ix_underwriting_reviews_status_created", "status", "created_at"),
     )
 
     def __repr__(self) -> str:

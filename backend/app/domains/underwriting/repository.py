@@ -7,7 +7,7 @@ providing an abstraction layer over database operations.
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.underwriting.models import UnderwritingReview

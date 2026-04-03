@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Index,
     Numeric,
     String,
     Text,
@@ -139,6 +140,16 @@ class Policy(Base):
         back_populates="policy",
         cascade="all, delete-orphan",
         lazy="selectin",
+    )
+
+    # Composite indexes for common query patterns
+    __table_args__ = (
+        Index(
+            "ix_policies_policyholder_status",
+            "policyholder_id",
+            "status",
+        ),
+        Index("ix_policies_status_created", "status", "created_at"),
     )
 
     def __repr__(self) -> str:

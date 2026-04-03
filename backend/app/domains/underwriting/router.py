@@ -17,6 +17,8 @@ from app.domains.underwriting.schemas import (
     UnderwritingReviewUpdate,
 )
 from app.domains.underwriting.service import UnderwritingService
+from app.domains.users.models import User, UserRole
+from app.domains.users.router import require_role
 from app.shared.enums import RiskLevel, UnderwritingStatus
 
 # Router for underwriting reviews
@@ -49,9 +51,12 @@ async def get_underwriting_service(
 )
 async def create_review(
     data: UnderwritingReviewCreate,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewResponse:
     """Create a new underwriting review.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     **Business Rules:**
     - Either quote_id or policy_id must be provided (not both)
@@ -72,6 +77,8 @@ async def create_review(
     **Returns:**
     - 201: Review created successfully with risk assessment
     - 400: Validation error (both quote_id and policy_id provided)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     - 404: Quote or policy not found
     - 422: Invalid input data
     """
@@ -86,12 +93,17 @@ async def create_review(
 )
 async def get_review(
     review_id: UUID,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewResponse:
     """Get an underwriting review by ID.
 
+    **Required Role:** UNDERWRITER or ADMIN
+
     **Returns:**
     - 200: Review found
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     - 404: Review not found
     """
     return await service.get_review(review_id)
@@ -140,9 +152,12 @@ async def list_reviews(
         int,
         Query(ge=1, le=100, description="Page size"),
     ] = 10,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewListResponse:
     """List underwriting reviews with filtering and pagination.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     **Query Parameters:**
     - status: Filter by underwriting status
@@ -157,6 +172,8 @@ async def list_reviews(
 
     **Returns:**
     - 200: List of reviews with pagination metadata
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     """
     filters = UnderwritingReviewFilterParams(
         status=status,
@@ -187,9 +204,12 @@ async def get_pending_reviews(
         int,
         Query(ge=1, le=100, description="Page size"),
     ] = 20,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewListResponse:
     """Get all reviews requiring manual action.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     Returns reviews with PENDING, IN_REVIEW, or REQUIRES_MANUAL_REVIEW status,
     ordered by risk score (highest risk first).
@@ -200,6 +220,8 @@ async def get_pending_reviews(
 
     **Returns:**
     - 200: List of pending reviews with pagination
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     """
     return await service.get_pending_reviews(page, size)
 
@@ -213,15 +235,20 @@ async def get_pending_reviews(
 async def update_review(
     review_id: UUID,
     data: UnderwritingReviewUpdate,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewResponse:
     """Update an underwriting review.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     **Allowed Updates:**
     - notes: Add or update review notes
 
     **Returns:**
     - 200: Review updated successfully
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     - 404: Review not found
     - 422: Invalid input data
     """
@@ -238,22 +265,28 @@ async def update_review(
 async def approve_review(
     review_id: UUID,
     data: UnderwritingReviewApprove,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewResponse:
     """Approve an underwriting review.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     **Business Rules:**
     - Review must be in pending state (PENDING, IN_REVIEW, REQUIRES_MANUAL_REVIEW)
     - Cannot approve already decided reviews
     - Sets approved_at timestamp
-    - Reviewer ID should come from JWT token (Phase 7)
+    - Reviewer ID taken from current_user
 
     **Returns:**
     - 200: Review approved successfully
     - 400: Review already decided
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     - 404: Review not found
     - 422: Invalid input data
     """
+    # TODO: Pass current_user.id as reviewer_id to service method
     return await service.approve_review(review_id, data)
 
 
@@ -267,21 +300,27 @@ async def approve_review(
 async def reject_review(
     review_id: UUID,
     data: UnderwritingReviewReject,
+    current_user: User = Depends(require_role(UserRole.UNDERWRITER)),
     service: UnderwritingService = Depends(get_underwriting_service),
 ) -> UnderwritingReviewResponse:
     """Reject an underwriting review.
+
+    **Required Role:** UNDERWRITER or ADMIN
 
     **Business Rules:**
     - Review must be in pending state (PENDING, IN_REVIEW, REQUIRES_MANUAL_REVIEW)
     - Cannot reject already decided reviews
     - Rejection notes are REQUIRED
     - Sets rejected_at timestamp
-    - Reviewer ID should come from JWT token (Phase 7)
+    - Reviewer ID taken from current_user
 
     **Returns:**
     - 200: Review rejected successfully
     - 400: Review already decided or missing notes
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires UNDERWRITER role)
     - 404: Review not found
     - 422: Invalid input data
     """
+    # TODO: Pass current_user.id as reviewer_id to service method
     return await service.reject_review(review_id, data)

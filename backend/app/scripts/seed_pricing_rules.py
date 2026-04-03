@@ -13,11 +13,10 @@ from decimal import Decimal
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import settings
-from app.core.database import Base
+from app.domains.policies.models import Coverage, Policy  # noqa: F401
 
 # Import all models to register them
 from app.domains.policy_holders.models import PolicyHolder  # noqa: F401
-from app.domains.policies.models import Coverage, Policy  # noqa: F401
 from app.domains.pricing.models import PricingRule, Quote  # noqa: F401
 from app.domains.pricing.repository import PricingRuleRepository
 from app.domains.pricing.schemas import PricingRuleCreate

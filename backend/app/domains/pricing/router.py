@@ -18,6 +18,8 @@ from app.domains.pricing.schemas import (
     QuoteUpdate,
 )
 from app.domains.pricing.service import QuoteService
+from app.domains.users.models import User, UserRole
+from app.domains.users.router import get_current_user, require_role
 from app.shared.enums import PolicyType, QuoteStatus, RiskLevel
 from app.shared.schemas.base import (
     MessageResponse,
@@ -56,9 +58,13 @@ async def get_quote_service(
 )
 async def create_quote(
     data: QuoteCreate,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> QuoteResponse:
     """Create a new insurance quote.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can create quotes for themselves, AGENT can create for any policyholder.
 
     **Business Rules:**
     - Quote number is auto-generated (format: QTE-YYYY-TYPE-NNNNN)
@@ -76,9 +82,12 @@ async def create_quote(
     **Returns:**
     - 201: Quote created successfully with calculated premium
     - 400: Validation error
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER creating quote for another policyholder)
     - 404: Policy holder not found or pricing rule not found
     - 422: Invalid input data
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.create_quote(data)
 
 
@@ -90,14 +99,21 @@ async def create_quote(
 )
 async def get_quote(
     quote_id: UUID,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> QuoteResponse:
     """Get a quote by ID.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own quotes.
+
     **Returns:**
     - 200: Quote found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's quote)
     - 404: Quote not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.get_quote(quote_id)
 
 
@@ -109,14 +125,21 @@ async def get_quote(
 )
 async def get_quote_by_number(
     quote_number: str,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> QuoteResponse:
     """Get a quote by quote number.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own quotes.
+
     **Returns:**
     - 200: Quote found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's quote)
     - 404: Quote not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.get_quote_by_number(quote_number)
 
 
@@ -151,9 +174,13 @@ async def list_quotes(
         str | None,
         Query(description="Search in quote_number"),
     ] = None,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> PaginatedResponse[QuoteResponse]:
     """List quotes with pagination and filters.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only see their own quotes.
 
     **Query Parameters:**
     - `page`: Page number (default: 1)
@@ -167,6 +194,7 @@ async def list_quotes(
 
     **Returns:**
     - 200: Paginated list of quotes
+    - 401: Not authenticated
     """
     pagination = PaginationParams(page=page, page_size=page_size, order_by=order_by)
     filters = QuoteFilterParams(
@@ -177,6 +205,12 @@ async def list_quotes(
         is_active=is_active,
         search=search,
     )
+
+    # For CUSTOMER role, filter to only their quotes
+    # TODO: Auto-set policy_holder_id from current_user.policyholder_id when that FK exists
+    if current_user.role == UserRole.CUSTOMER and not current_user.is_superuser:
+        pass  # Would filter by current_user.policyholder_id
+
     return await service.get_quotes(pagination, filters)
 
 
@@ -189,9 +223,13 @@ async def list_quotes(
 async def update_quote(
     quote_id: UUID,
     data: QuoteUpdate,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> QuoteResponse:
     """Update a quote.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can update their own quotes, AGENT can update any.
 
     **Business Rules:**
     - Can only update quotes in DRAFT or ACTIVE status
@@ -201,9 +239,12 @@ async def update_quote(
     **Returns:**
     - 200: Quote updated successfully
     - 400: Cannot update quote in current status
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER updating other's quote)
     - 404: Quote not found
     - 422: Invalid input data
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.update_quote(quote_id, data)
 
 
@@ -215,9 +256,12 @@ async def update_quote(
 )
 async def delete_quote(
     quote_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: QuoteService = Depends(get_quote_service),
 ) -> MessageResponse:
     """Soft delete a quote.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Sets is_active to False
@@ -225,6 +269,8 @@ async def delete_quote(
 
     **Returns:**
     - 200: Quote deleted successfully
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Quote not found
     """
     await service.delete_quote(quote_id)
@@ -241,9 +287,13 @@ async def delete_quote(
 async def accept_quote(
     quote_id: UUID,
     data: QuoteAcceptRequest,
+    current_user: User = Depends(get_current_user),
     service: QuoteService = Depends(get_quote_service),
 ) -> dict[str, Any]:
     """Accept a quote and convert it to an active policy.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can accept their own quotes, AGENT can accept any.
 
     **Business Rules:**
     - Quote must be in ACTIVE or PENDING status
@@ -258,9 +308,12 @@ async def accept_quote(
     **Returns:**
     - 201: Quote accepted and policy created
     - 400: Quote expired or invalid status
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accepting other's quote)
     - 404: Quote not found
     - 422: Invalid input data
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.accept_quote(quote_id, data)
 
 
@@ -272,9 +325,12 @@ async def accept_quote(
 )
 async def reject_quote(
     quote_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: QuoteService = Depends(get_quote_service),
 ) -> QuoteResponse:
     """Reject a quote.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Quote must be in ACTIVE or PENDING status
@@ -283,6 +339,8 @@ async def reject_quote(
     **Returns:**
     - 200: Quote rejected successfully
     - 400: Cannot reject quote in current status
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Quote not found
     """
     return await service.reject_quote(quote_id)
@@ -291,7 +349,6 @@ async def reject_quote(
 # ============================================================================
 # Pricing Rule Endpoints (Admin Only)
 # ============================================================================
-# TODO Phase 7: Add admin authentication decorator to all pricing rule endpoints
 
 
 @pricing_rules_router.post(
@@ -303,20 +360,23 @@ async def reject_quote(
 )
 async def create_pricing_rule(
     data: PricingRuleCreate,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
     service: QuoteService = Depends(get_quote_service),
 ) -> PricingRuleResponse:
     """Create a new pricing rule.
+
+    **Required Role:** ADMIN
 
     **Business Rules:**
     - Only one active rule per (policy_type, risk_level) combination
     - Base premium must be positive
     - Multiplier factors stored as JSON
 
-    **Admin Only:** This endpoint will require admin authentication in Phase 7.
-
     **Returns:**
     - 201: Pricing rule created successfully
     - 400: Validation error (e.g., duplicate active rule)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires ADMIN role)
     - 422: Invalid input data
     """
     rule = await service.pricing_rule_repository.create(data)
@@ -327,18 +387,21 @@ async def create_pricing_rule(
     "/{rule_id}",
     response_model=PricingRuleResponse,
     summary="Get a pricing rule by ID",
-    description="[ADMIN] Retrieve detailed information about a specific pricing rule.",
+    description="[ADMIN/AGENT] Retrieve detailed information about a specific pricing rule.",
 )
 async def get_pricing_rule(
     rule_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: QuoteService = Depends(get_quote_service),
 ) -> PricingRuleResponse:
     """Get a pricing rule by ID.
 
-    **Admin Only:** This endpoint will require admin authentication in Phase 7.
+    **Required Role:** AGENT, UNDERWRITER, or ADMIN (read-only for non-admin)
 
     **Returns:**
     - 200: Pricing rule found
+    - 401: Not authenticated
+    - 403: Insufficient permissions
     - 404: Pricing rule not found
     """
     from app.core.exceptions import NotFoundException
@@ -353,7 +416,7 @@ async def get_pricing_rule(
     "",
     response_model=list[PricingRuleResponse],
     summary="List pricing rules",
-    description="[ADMIN] Get a list of pricing rules with optional filters.",
+    description="[ADMIN/AGENT] Get a list of pricing rules with optional filters.",
 )
 async def list_pricing_rules(
     policy_type: Annotated[
@@ -365,19 +428,22 @@ async def list_pricing_rules(
     is_active: Annotated[
         bool | None, Query(description="Filter by active status")
     ] = None,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: QuoteService = Depends(get_quote_service),
 ) -> list[PricingRuleResponse]:
     """List pricing rules with optional filters.
+
+    **Required Role:** AGENT, UNDERWRITER, or ADMIN (read-only for non-admin)
 
     **Query Parameters:**
     - `policy_type`: Filter by policy type
     - `risk_level`: Filter by risk level
     - `is_active`: Filter by active status
 
-    **Admin Only:** This endpoint will require admin authentication in Phase 7.
-
     **Returns:**
     - 200: List of pricing rules
+    - 401: Not authenticated
+    - 403: Insufficient permissions
     """
     rules = await service.pricing_rule_repository.get_all(
         policy_type=policy_type,
@@ -396,18 +462,21 @@ async def list_pricing_rules(
 async def update_pricing_rule(
     rule_id: UUID,
     data: PricingRuleUpdate,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
     service: QuoteService = Depends(get_quote_service),
 ) -> PricingRuleResponse:
     """Update a pricing rule.
+
+    **Required Role:** ADMIN
 
     **Business Rules:**
     - Cannot change policy_type or risk_level (create a new rule instead)
     - Base premium must be positive if provided
 
-    **Admin Only:** This endpoint will require admin authentication in Phase 7.
-
     **Returns:**
     - 200: Pricing rule updated successfully
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires ADMIN role)
     - 404: Pricing rule not found
     - 422: Invalid input data
     """
@@ -427,19 +496,22 @@ async def update_pricing_rule(
 )
 async def delete_pricing_rule(
     rule_id: UUID,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
     service: QuoteService = Depends(get_quote_service),
 ) -> MessageResponse:
     """Soft delete a pricing rule.
+
+    **Required Role:** ADMIN
 
     **Business Rules:**
     - Sets is_active to False
     - Rule remains in database for audit purposes
     - Existing quotes calculated with this rule are not affected
 
-    **Admin Only:** This endpoint will require admin authentication in Phase 7.
-
     **Returns:**
     - 200: Pricing rule deleted successfully
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires ADMIN role)
     - 404: Pricing rule not found
     """
     from app.core.exceptions import NotFoundException

@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Index,
     Numeric,
     String,
     Text,
@@ -137,6 +138,8 @@ class Invoice(Base):
             "amount_paid <= amount_due",
             name="check_invoice_amount_paid_not_exceeds_due",
         ),
+        Index("ix_invoices_policy_status", "policy_id", "status"),
+        Index("ix_invoices_status_due_date", "status", "due_date"),
     )
 
     # Properties

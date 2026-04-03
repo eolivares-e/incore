@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import InsuranceCoreError
+from app.core.logging import get_logger
 from app.domains.billing.models import Invoice, Payment
 from app.domains.billing.repository import InvoiceRepository, PaymentRepository
 from app.domains.billing.schemas import (
@@ -28,6 +29,8 @@ from app.domains.billing.schemas import (
     StripePaymentIntentResponse,
 )
 from app.shared.enums import InvoiceStatus, PaymentMethod, PaymentStatus
+
+logger = get_logger(__name__)
 
 # ============================================================================
 # Payment Provider Interface
@@ -511,6 +514,14 @@ class PaymentService:
             },
         )
 
+        logger.info(
+            "payment_intent_created",
+            invoice_id=str(invoice.id),
+            invoice_number=invoice.invoice_number,
+            amount=str(data.amount),
+            payment_intent_id=payment_intent["id"],
+        )
+
         # Create pending payment record
         payment_data = PaymentCreate(
             invoice_id=invoice.id,
@@ -581,6 +592,15 @@ class PaymentService:
             total_paid = invoice.amount_paid + payment.amount
             await self.invoice_repo.update_payment_status(invoice, total_paid)
 
+            logger.info(
+                "payment_succeeded",
+                payment_id=str(payment.id),
+                invoice_id=str(invoice.id),
+                invoice_number=invoice.invoice_number,
+                amount=str(payment.amount),
+                stripe_payment_intent_id=payment_intent_data["id"],
+            )
+
         elif event_type == "payment_intent.payment_failed":
             # Update payment as failed
             failure_message = payment_intent_data.get("last_payment_error", {}).get(
@@ -592,6 +612,14 @@ class PaymentService:
                 metadata={"webhook_event": event_type, "event_id": event["id"]},
             )
             await self.payment_repo.update(payment, update_data)
+
+            logger.warning(
+                "payment_failed",
+                payment_id=str(payment.id),
+                invoice_id=str(invoice.id),
+                stripe_payment_intent_id=payment_intent_data["id"],
+                failure_reason=failure_message,
+            )
 
         elif event_type == "payment_intent.canceled":
             # Update payment as cancelled
@@ -650,6 +678,15 @@ class PaymentService:
             payment.stripe_payment_intent_id,
             amount=None,  # Full refund
             reason=refund_request.reason,
+        )
+
+        logger.info(
+            "payment_refunded",
+            payment_id=str(payment.id),
+            invoice_id=str(payment.invoice_id),
+            amount=str(payment.amount),
+            reason=refund_request.reason,
+            stripe_payment_intent_id=payment.stripe_payment_intent_id,
         )
 
         # Update payment status

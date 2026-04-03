@@ -10,6 +10,7 @@ from app.core.exceptions import (
     AuthorizationException,
     ValidationException,
 )
+from app.core.logging import get_logger
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -20,6 +21,8 @@ from app.core.security import (
 )
 from app.domains.users.models import User, UserRole
 from app.domains.users.repository import UserRepository
+
+logger = get_logger(__name__)
 
 
 class AuthService:
@@ -57,10 +60,12 @@ class AuthService:
         # Validate password strength
         is_valid, error_msg = validate_password_strength(password)
         if not is_valid:
+            logger.warning("user_registration_weak_password", email=email)
             raise ValidationException(error_msg)
 
         # Check if email already exists
         if await self.repository.email_exists(email):
+            logger.warning("user_registration_duplicate_email", email=email)
             raise ValidationException(f"Email {email} is already registered")
 
         # Hash password
@@ -73,6 +78,13 @@ class AuthService:
             full_name=full_name,
             role=UserRole.CUSTOMER,
             is_superuser=False,
+        )
+
+        logger.info(
+            "user_registered",
+            user_id=str(user.id),
+            email=user.email,
+            role=user.role,
         )
 
         return user
@@ -97,14 +109,23 @@ class AuthService:
         # Find user by email
         user = await self.repository.get_for_login(email)
         if not user:
+            logger.warning("login_failed_invalid_email", email=email)
             raise AuthenticationException("Invalid email or password")
 
         # Verify password
         if not verify_password(password, user.hashed_password):
+            logger.warning(
+                "login_failed_invalid_password",
+                user_id=str(user.id),
+                email=email,
+            )
             raise AuthenticationException("Invalid email or password")
 
         # Check if user is active
         if not user.is_active:
+            logger.warning(
+                "login_failed_inactive_user", user_id=str(user.id), email=email
+            )
             raise AuthenticationException(
                 "Account is inactive. Please contact support."
             )
@@ -112,6 +133,13 @@ class AuthService:
         # Create tokens
         access_token = create_access_token(subject=str(user.id))
         refresh_token = create_refresh_token(subject=str(user.id))
+
+        logger.info(
+            "user_logged_in",
+            user_id=str(user.id),
+            email=user.email,
+            role=user.role,
+        )
 
         return user, access_token, refresh_token
 

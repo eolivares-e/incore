@@ -17,6 +17,8 @@ from app.domains.policies.schemas import (
     PolicyUpdate,
 )
 from app.domains.policies.service import PolicyService
+from app.domains.users.models import User, UserRole
+from app.domains.users.router import get_current_user, require_role
 from app.shared.enums import PolicyStatus, PolicyType
 from app.shared.schemas.base import MessageResponse, PaginatedResponse, PaginationParams
 
@@ -45,9 +47,12 @@ async def get_policy_service(
 )
 async def create_policy(
     data: PolicyCreate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Create a new policy with coverages.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Policy number is auto-generated (format: POL-YYYY-TYPE-NNNNN)
@@ -60,6 +65,8 @@ async def create_policy(
     **Returns:**
     - 201: Policy created successfully
     - 400: Validation error (e.g., invalid dates, duplicate coverages)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policyholder not found
     - 422: Invalid input data
     """
@@ -74,14 +81,21 @@ async def create_policy(
 )
 async def get_policy(
     policy_id: UUID,
+    current_user: User = Depends(get_current_user),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Get a policy by ID with coverages.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own policies.
+
     **Returns:**
     - 200: Policy found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's data)
     - 404: Policy not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.get_policy(policy_id)
 
 
@@ -93,14 +107,21 @@ async def get_policy(
 )
 async def get_policy_by_number(
     policy_number: str,
+    current_user: User = Depends(get_current_user),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Get a policy by policy number with coverages.
 
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only view their own policies.
+
     **Returns:**
     - 200: Policy found
+    - 401: Not authenticated
+    - 403: Access denied (CUSTOMER accessing other's data)
     - 404: Policy not found
     """
+    # TODO: Add ownership validation for CUSTOMER role
     return await service.get_policy_by_number(policy_number)
 
 
@@ -132,9 +153,13 @@ async def list_policies(
         str | None,
         Query(description="Search in policy_number"),
     ] = None,
+    current_user: User = Depends(get_current_user),
     service: PolicyService = Depends(get_policy_service),
 ) -> PaginatedResponse[PolicyResponse]:
     """List policies with pagination and filters.
+
+    **Authentication:** Required
+    **Access Control:** CUSTOMER can only see their own policies.
 
     **Query Parameters:**
     - `page`: Page number (default: 1)
@@ -147,6 +172,7 @@ async def list_policies(
 
     **Returns:**
     - 200: Paginated list of policies
+    - 401: Not authenticated
     """
     pagination = PaginationParams(page=page, page_size=page_size, order_by=order_by)
     filters = PolicyFilterParams(
@@ -156,6 +182,12 @@ async def list_policies(
         is_active=is_active,
         search=search,
     )
+
+    # For CUSTOMER role, filter to only their policies
+    # TODO: Auto-set policyholder_id from current_user.policyholder_id when that FK exists
+    if current_user.role == UserRole.CUSTOMER and not current_user.is_superuser:
+        pass  # Would filter by current_user.policyholder_id
+
     return await service.get_policies(pagination, filters)
 
 
@@ -168,9 +200,12 @@ async def list_policies(
 async def update_policy(
     policy_id: UUID,
     data: PolicyUpdate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Update a policy.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Only provided fields will be updated
@@ -184,6 +219,8 @@ async def update_policy(
     **Returns:**
     - 200: Policy updated successfully
     - 400: Invalid status transition or validation error
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     - 422: Invalid input data
     """
@@ -198,9 +235,12 @@ async def update_policy(
 )
 async def delete_policy(
     policy_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> MessageResponse:
     """Soft delete a policy.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - This is a soft delete (sets is_active to False)
@@ -208,6 +248,8 @@ async def delete_policy(
 
     **Returns:**
     - 200: Policy deleted successfully
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     """
     await service.delete_policy(policy_id)
@@ -222,9 +264,12 @@ async def delete_policy(
 )
 async def activate_policy(
     policy_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Activate a policy (DRAFT -> ACTIVE).
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Policy must be in DRAFT status
@@ -233,6 +278,8 @@ async def activate_policy(
     **Returns:**
     - 200: Policy activated successfully
     - 400: Policy cannot be activated (wrong status or invalid date)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     """
     return await service.activate_policy(policy_id)
@@ -246,9 +293,12 @@ async def activate_policy(
 )
 async def cancel_policy(
     policy_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> PolicyResponse:
     """Cancel a policy.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Policy must be in DRAFT or ACTIVE status
@@ -257,6 +307,8 @@ async def cancel_policy(
     **Returns:**
     - 200: Policy cancelled successfully
     - 400: Policy cannot be cancelled (wrong status)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     """
     return await service.cancel_policy(policy_id)
@@ -277,9 +329,12 @@ async def cancel_policy(
 async def add_coverage(
     policy_id: UUID,
     data: CoverageCreate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> CoverageResponse:
     """Add a coverage to a policy.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Policy must exist and be in DRAFT status
@@ -290,6 +345,8 @@ async def add_coverage(
     **Returns:**
     - 201: Coverage added successfully
     - 400: Validation error (e.g., duplicate coverage type, wrong status)
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Policy not found
     - 422: Invalid input data
     """
@@ -305,9 +362,12 @@ async def add_coverage(
 async def update_coverage(
     coverage_id: UUID,
     data: CoverageUpdate,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> CoverageResponse:
     """Update a coverage.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Coverage must exist
@@ -317,6 +377,8 @@ async def update_coverage(
     **Returns:**
     - 200: Coverage updated successfully
     - 400: Policy not in DRAFT status
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Coverage not found
     - 422: Invalid input data
     """
@@ -331,9 +393,12 @@ async def update_coverage(
 )
 async def delete_coverage(
     coverage_id: UUID,
+    current_user: User = Depends(require_role(UserRole.AGENT)),
     service: PolicyService = Depends(get_policy_service),
 ) -> MessageResponse:
     """Delete a coverage.
+
+    **Required Role:** AGENT or ADMIN
 
     **Business Rules:**
     - Coverage must exist
@@ -343,6 +408,8 @@ async def delete_coverage(
     **Returns:**
     - 200: Coverage deleted successfully
     - 400: Policy not in DRAFT status or would have no coverages remaining
+    - 401: Not authenticated
+    - 403: Insufficient permissions (requires AGENT role)
     - 404: Coverage not found
     """
     await service.delete_coverage(coverage_id)

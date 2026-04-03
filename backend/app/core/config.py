@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_TEST_MODE: bool = True
 
+    # Logging
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    LOG_FORMAT: str = "readable"  # "json" for production, "readable" for development
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=True,

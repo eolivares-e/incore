@@ -1,6 +1,6 @@
 """SQLAlchemy models for the Pricing domain."""
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import uuid4
@@ -152,6 +152,7 @@ class Quote(Base):
         Index("ix_quotes_policy_holder_id_status", "policy_holder_id", "status"),
         Index("ix_quotes_policy_type_risk_level", "policy_type", "risk_level"),
         Index("ix_quotes_created_at", "created_at"),
+        Index("ix_quotes_status_created", "status", "created_at"),
     )
 
     def __repr__(self) -> str:

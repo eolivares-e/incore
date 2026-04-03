@@ -108,14 +108,21 @@ backend/
 │   │   ├── config.py          # Settings (pydantic-settings)
 │   │   ├── database.py        # Async engine, sessionmaker, Base class
 │   │   ├── security.py        # JWT utilities, password hashing
-│   │   └── exceptions.py      # Custom exception classes
+│   │   ├── exceptions.py      # Custom exception classes
+│   │   ├── logging.py         # Structured logging (structlog) ✅
+│   │   ├── middleware.py      # Request/response logging middleware ✅
+│   │   └── dependencies.py    # Ownership validation helpers ✅
 │   ├── domains/                # Business domains (DDD)
 │   │   ├── policy_holders/    # Policyholders domain (Phase 2) ✅
 │   │   ├── policies/          # Policies domain (Phase 3) ✅
-│   │   ├── underwriting/      # Underwriting (Phase 5)
-│   │   ├── pricing/           # Pricing/Quotes (Phase 4)
-│   │   ├── billing/           # Billing/Payments (Phase 6)
-│   │   └── users/             # Auth (Phase 7)
+│   │   ├── underwriting/      # Underwriting (Phase 5) ✅
+│   │   ├── pricing/           # Pricing/Quotes (Phase 4) ✅
+│   │   ├── billing/           # Billing/Payments (Phase 6) ✅
+│   │   └── users/             # Auth (Phase 7) ✅
+│   ├── workflows/             # Cross-domain workflows (Phase 8) ✅
+│   │   ├── quote_to_policy.py # Quote-to-Policy workflow
+│   │   ├── schemas.py         # Workflow schemas
+│   │   └── router.py          # Workflow endpoints
 │   └── shared/
 │       ├── schemas/base.py    # Base Pydantic schemas, pagination
 │       ├── enums.py           # Insurance domain enums (Phase 1) ✅
@@ -146,7 +153,8 @@ domains/{domain}/
 - **ORM**: SQLAlchemy 2.0 (not tightly coupled, flexible)
 - **Naming**: PEP 8 (modules/tables: `policy_holders`, classes: `PolicyHolder`)
 - **Migrations**: Alembic (auto-generate from models: `alembic revision --autogenerate`)
-- **Auth**: JWT (Phase 7, not yet implemented)
+- **Auth**: JWT with role-based access control (ADMIN, UNDERWRITER, AGENT, CUSTOMER)
+- **Logging**: Structured logging with structlog (JSON/readable formats)
 - **Validation**: Pydantic v2 (with custom validators in schemas)
 
 ### Testing Strategy
@@ -353,7 +361,7 @@ cd frontend && rm -rf node_modules .next yarn.lock && yarn install
 
 ## Implementation Phases Status
 
-Current Progress: **Phase 3/9 (33%)**
+Current Progress: **Phase 8/9 (89%)**
 
 | Phase | Name | Status | Notes |
 |-------|------|--------|-------|
@@ -361,11 +369,11 @@ Current Progress: **Phase 3/9 (33%)**
 | 1 | Shared Domain Models & Enums | ✅ Complete | PolicyStatus, Gender, RiskLevel, etc. |
 | 2 | Policyholders Domain | ✅ Complete | CRUD endpoints, PEP 8 naming enforced |
 | 3 | Policies Domain | ✅ Complete | Policy + Coverage models, auto-generation |
-| 4 | Pricing/Quoting Domain | ⬜ Not Started | Quote model, PricingEngine service |
-| 5 | Underwriting Domain | ⬜ Not Started | Risk scoring, UnderwritingReview |
-| 6 | Billing/Payments Domain | ⬜ Not Started | Stripe integration, Invoice/Payment models |
-| 7 | Authentication & Authorization | ⬜ Not Started | User model, JWT login, RBAC |
-| 8 | Integration & Polish | ⬜ Not Started | Cross-domain workflows, logging, performance |
+| 4 | Pricing/Quoting Domain | ✅ Complete | Quote model, PricingEngine service |
+| 5 | Underwriting Domain | ✅ Complete | Risk scoring, UnderwritingReview |
+| 6 | Billing/Payments Domain | ✅ Complete | Stripe integration, Invoice/Payment models |
+| 7 | Authentication & Authorization | ✅ Complete | User model, JWT login, RBAC |
+| 8 | Integration & Polish | ✅ Complete | Logging, workflows, health checks, indexes |
 
 See `docs/IMPLEMENTATION_PLAN.md` for detailed phase specifications.
 
