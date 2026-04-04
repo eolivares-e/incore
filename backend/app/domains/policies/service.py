@@ -57,7 +57,8 @@ class PolicyService:
             POL-2026-HEALTH-00042
             POL-2026-LIFE-99999
         """
-        return f"POL-{year}-{policy_type.value}-{sequence:05d}"
+        pt = policy_type if isinstance(policy_type, str) else policy_type.value
+        return f"POL-{year}-{pt.upper()}-{sequence:05d}"
 
     async def _get_next_policy_number(self, policy_type: PolicyType) -> str:
         """Get the next available policy number for a given type.
@@ -397,8 +398,8 @@ class PolicyService:
         for coverage in policy.coverages:
             if coverage.coverage_type == data.coverage_type:
                 raise ValidationException(
-                    message=f"Coverage type {data.coverage_type.value} already exists on this policy",
-                    details={"coverage_type": data.coverage_type.value},
+                    message=f"Coverage type {data.coverage_type if isinstance(data.coverage_type, str) else data.coverage_type.value} already exists on this policy",
+                    details={"coverage_type": data.coverage_type if isinstance(data.coverage_type, str) else data.coverage_type.value},
                 )
 
         # Add coverage

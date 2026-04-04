@@ -39,12 +39,12 @@ async def get_policyholder_service(
 )
 async def create_policyholder(
     data: PolicyHolderCreate,
-    current_user: User = Depends(require_role(UserRole.AGENT)),
+    current_user: User = Depends(get_current_user),
     service: PolicyHolderService = Depends(get_policyholder_service),
 ) -> PolicyHolderResponse:
     """Create a new policyholder.
 
-    **Required Role:** AGENT or ADMIN
+    **Required Role:** Any authenticated user (customers can create their own profile)
 
     **Business Rules:**
     - Email must be unique
@@ -59,6 +59,30 @@ async def create_policyholder(
     - 422: Invalid input data
     """
     return await service.create_policyholder(data)
+
+
+@router.get(
+    "/by-email/{email}",
+    response_model=PolicyHolderResponse | None,
+    summary="Get policyholder by email",
+    description="Find a policyholder by their email address.",
+)
+async def get_policyholder_by_email(
+    email: str,
+    current_user: User = Depends(get_current_user),
+    service: PolicyHolderService = Depends(get_policyholder_service),
+) -> PolicyHolderResponse | None:
+    """Get a policyholder by email address.
+
+    **Authentication:** Required
+    **Access Control:** AGENT, UNDERWRITER, and ADMIN can search any email.
+                       CUSTOMER can only search their own email.
+
+    **Returns:**
+    - 200: PolicyHolder found (or null if not found)
+    - 401: Not authenticated
+    """
+    return await service.get_policyholder_by_email(email)
 
 
 @router.get(
@@ -227,27 +251,3 @@ async def activate_policyholder(
     - 404: PolicyHolder not found
     """
     return await service.activate_policyholder(policyholder_id)
-
-
-@router.get(
-    "/by-email/{email}",
-    response_model=PolicyHolderResponse | None,
-    summary="Get policyholder by email",
-    description="Find a policyholder by their email address.",
-)
-async def get_policyholder_by_email(
-    email: str,
-    current_user: User = Depends(get_current_user),
-    service: PolicyHolderService = Depends(get_policyholder_service),
-) -> PolicyHolderResponse | None:
-    """Get a policyholder by email address.
-
-    **Authentication:** Required
-    **Access Control:** AGENT, UNDERWRITER, and ADMIN can search any email.
-                       CUSTOMER can only search their own email.
-
-    **Returns:**
-    - 200: PolicyHolder found (or null if not found)
-    - 401: Not authenticated
-    """
-    return await service.get_policyholder_by_email(email)

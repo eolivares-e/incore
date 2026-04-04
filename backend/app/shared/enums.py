@@ -7,28 +7,40 @@ All enums use string values for better readability in APIs and databases.
 from enum import Enum
 
 
-class PolicyStatus(str, Enum):
+class _CaseInsensitiveMixin:
+    """Mixin that makes Enum accept values case-insensitively."""
+
+    @classmethod
+    def _missing_(cls, value: object):
+        if isinstance(value, str):
+            for member in cls:
+                if member.value.lower() == value.lower():
+                    return member
+        return None
+
+
+class PolicyStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of an insurance policy."""
 
-    DRAFT = "draft"
-    PENDING_APPROVAL = "pending_approval"
-    ACTIVE = "active"
-    SUSPENDED = "suspended"
-    EXPIRED = "expired"
-    CANCELLED = "cancelled"
-    PENDING_RENEWAL = "pending_renewal"
+    DRAFT = "DRAFT"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    ACTIVE = "ACTIVE"
+    SUSPENDED = "SUSPENDED"
+    EXPIRED = "EXPIRED"
+    CANCELLED = "CANCELLED"
+    PENDING_RENEWAL = "PENDING_RENEWAL"
 
 
-class PolicyType(str, Enum):
+class PolicyType(_CaseInsensitiveMixin, str, Enum):
     """Type of insurance policy."""
 
-    AUTO = "auto"
-    HOME = "home"
-    LIFE = "life"
-    HEALTH = "health"
+    AUTO = "AUTO"
+    HOME = "HOME"
+    LIFE = "LIFE"
+    HEALTH = "HEALTH"
 
 
-class ClaimStatus(str, Enum):
+class ClaimStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of an insurance claim."""
 
     SUBMITTED = "submitted"
@@ -41,7 +53,7 @@ class ClaimStatus(str, Enum):
     APPEALED = "appealed"
 
 
-class PaymentStatus(str, Enum):
+class PaymentStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of a payment transaction."""
 
     PENDING = "pending"
@@ -53,7 +65,7 @@ class PaymentStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class PaymentMethod(str, Enum):
+class PaymentMethod(_CaseInsensitiveMixin, str, Enum):
     """Method used for payment."""
 
     CREDIT_CARD = "credit_card"
@@ -64,7 +76,7 @@ class PaymentMethod(str, Enum):
     DIGITAL_WALLET = "digital_wallet"
 
 
-class UnderwritingStatus(str, Enum):
+class UnderwritingStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of underwriting review process."""
 
     PENDING = "pending"
@@ -75,51 +87,51 @@ class UnderwritingStatus(str, Enum):
     CONDITIONALLY_APPROVED = "conditionally_approved"
 
 
-class CoverageType(str, Enum):
+class CoverageType(_CaseInsensitiveMixin, str, Enum):
     """Type of coverage provided by a policy.
 
     Note: Different policy types may use different coverage types.
     """
 
     # Auto insurance coverages
-    LIABILITY = "liability"
-    COLLISION = "collision"
-    COMPREHENSIVE = "comprehensive"
-    PERSONAL_INJURY_PROTECTION = "personal_injury_protection"
-    UNINSURED_MOTORIST = "uninsured_motorist"
+    LIABILITY = "LIABILITY"
+    COLLISION = "COLLISION"
+    COMPREHENSIVE = "COMPREHENSIVE"
+    PERSONAL_INJURY_PROTECTION = "PERSONAL_INJURY_PROTECTION"
+    UNINSURED_MOTORIST = "UNINSURED_MOTORIST"
 
     # Home insurance coverages
-    DWELLING = "dwelling"
-    PERSONAL_PROPERTY = "personal_property"
-    LIABILITY_HOME = "liability_home"
-    ADDITIONAL_LIVING_EXPENSES = "additional_living_expenses"
+    DWELLING = "DWELLING"
+    PERSONAL_PROPERTY = "PERSONAL_PROPERTY"
+    LIABILITY_HOME = "LIABILITY_HOME"
+    ADDITIONAL_LIVING_EXPENSES = "ADDITIONAL_LIVING_EXPENSES"
 
     # Life insurance coverages
-    DEATH_BENEFIT = "death_benefit"
-    ACCIDENTAL_DEATH = "accidental_death"
-    CRITICAL_ILLNESS = "critical_illness"
+    DEATH_BENEFIT = "DEATH_BENEFIT"
+    ACCIDENTAL_DEATH = "ACCIDENTAL_DEATH"
+    CRITICAL_ILLNESS = "CRITICAL_ILLNESS"
 
     # Health insurance coverages
-    MEDICAL = "medical"
-    DENTAL = "dental"
-    VISION = "vision"
-    PRESCRIPTION = "prescription"
-    MENTAL_HEALTH = "mental_health"
+    MEDICAL = "MEDICAL"
+    DENTAL = "DENTAL"
+    VISION = "VISION"
+    PRESCRIPTION = "PRESCRIPTION"
+    MENTAL_HEALTH = "MENTAL_HEALTH"
 
     # General
-    OTHER = "other"
+    OTHER = "OTHER"
 
 
-class Gender(str, Enum):
+class Gender(_CaseInsensitiveMixin, str, Enum):
     """Gender identification."""
 
-    MALE = "male"
-    FEMALE = "female"
-    OTHER = "other"
-    PREFER_NOT_TO_SAY = "prefer_not_to_say"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+    OTHER = "OTHER"
+    PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY"
 
 
-class RiskLevel(str, Enum):
+class RiskLevel(_CaseInsensitiveMixin, str, Enum):
     """Risk level assessment for underwriting."""
 
     LOW = "low"
@@ -128,7 +140,7 @@ class RiskLevel(str, Enum):
     VERY_HIGH = "very_high"
 
 
-class IdentificationType(str, Enum):
+class IdentificationType(_CaseInsensitiveMixin, str, Enum):
     """Type of identification document."""
 
     PASSPORT = "passport"
@@ -139,7 +151,7 @@ class IdentificationType(str, Enum):
     OTHER = "other"
 
 
-class QuoteStatus(str, Enum):
+class QuoteStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of an insurance quote."""
 
     DRAFT = "draft"
@@ -151,7 +163,7 @@ class QuoteStatus(str, Enum):
     CONVERTED_TO_POLICY = "converted_to_policy"
 
 
-class InvoiceStatus(str, Enum):
+class InvoiceStatus(_CaseInsensitiveMixin, str, Enum):
     """Status of an invoice."""
 
     DRAFT = "draft"

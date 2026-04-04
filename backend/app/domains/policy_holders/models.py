@@ -44,7 +44,7 @@ class PolicyHolder(Base):
         nullable=False,
     )
     gender: Mapped[Gender] = mapped_column(
-        Enum(Gender, name="gender_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
+        Enum(Gender, name="gender_enum", create_type=False),
         nullable=False,
     )
 
@@ -85,7 +85,7 @@ class PolicyHolder(Base):
 
     # Identification
     identification_type: Mapped[IdentificationType] = mapped_column(
-        Enum(IdentificationType, name="identification_type_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
+        Enum(IdentificationType, name="identification_type_enum", create_type=False),
         nullable=False,
     )
     identification_number: Mapped[str] = mapped_column(

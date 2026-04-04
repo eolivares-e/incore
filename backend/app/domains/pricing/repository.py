@@ -259,7 +259,8 @@ class QuoteRepository:
             Latest sequence number (0 if none exist)
         """
         # Query for quotes with pattern QTE-{year}-{type}-
-        pattern = f"QTE-{year}-{policy_type.value.upper()}-%"
+        pt = policy_type if isinstance(policy_type, str) else policy_type.value
+        pattern = f"QTE-{year}-{pt.upper()}-%"
         stmt = (
             select(Quote.quote_number)
             .where(Quote.quote_number.like(pattern))

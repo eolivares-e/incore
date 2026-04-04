@@ -72,7 +72,7 @@ class PricingEngine:
         risk_factors = {
             "age": policy_holder_age,
             "coverage_amount": float(coverage_amount),
-            "policy_type": policy_type.value,
+            "policy_type": policy_type if isinstance(policy_type, str) else policy_type.value,
         }
 
         # Age-based risk
@@ -214,7 +214,8 @@ class QuoteService:
             QTE-2026-HEALTH-00042
             QTE-2026-LIFE-99999
         """
-        return f"QTE-{year}-{policy_type.value.upper()}-{sequence:05d}"
+        pt = policy_type if isinstance(policy_type, str) else policy_type.value
+        return f"QTE-{year}-{pt.upper()}-{sequence:05d}"
 
     async def _get_next_quote_number(self, policy_type: PolicyType) -> str:
         """Get the next available quote number for a given type.
@@ -278,8 +279,8 @@ class QuoteService:
         if not pricing_rule:
             raise NotFoundException(
                 resource="PricingRule",
-                resource_id=f"{data.policy_type.value}/{risk_level.value}",
-                message=f"No active pricing rule found for {data.policy_type.value} policy with {risk_level.value} risk level",
+                resource_id=f"{data.policy_type}/{risk_level}",
+                message=f"No active pricing rule found for {data.policy_type} policy with {risk_level} risk level",
             )
 
         # Calculate premium
@@ -527,8 +528,8 @@ class QuoteService:
 
         # Create basic coverage based on quote
         coverage = CoverageCreate(
-            coverage_type="liability",  # Default coverage type
-            coverage_name=f"{quote.policy_type.value.capitalize()} Coverage",
+            coverage_type="LIABILITY",  # Default coverage type
+            coverage_name=f"{str(quote.policy_type).capitalize()} Coverage",
             coverage_amount=quote.requested_coverage_amount,
             deductible=Decimal("0.00"),
             description=f"Coverage converted from quote {quote.quote_number}",

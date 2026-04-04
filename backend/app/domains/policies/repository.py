@@ -264,7 +264,8 @@ class PolicyRepository:
             Latest sequence number (0 if none exist)
         """
         # Query for policies with pattern POL-{year}-{type}-
-        pattern = f"POL-{year}-{policy_type.value}-%"
+        pt = policy_type if isinstance(policy_type, str) else policy_type.value
+        pattern = f"POL-{year}-{pt.upper()}-%"
         stmt = (
             select(Policy.policy_number)
             .where(Policy.policy_number.like(pattern))
