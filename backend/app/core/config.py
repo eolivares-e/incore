@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
         "http://frontend:3000",
     ]
 

@@ -89,7 +89,7 @@ class Invoice(Base):
 
     # Status
     status: Mapped[InvoiceStatus] = mapped_column(
-        Enum(InvoiceStatus, name="invoice_status_enum", create_type=False),
+        Enum(InvoiceStatus, name="invoice_status_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=InvoiceStatus.PENDING,
         index=True,
@@ -204,7 +204,7 @@ class Payment(Base):
     )
 
     payment_method: Mapped[PaymentMethod] = mapped_column(
-        Enum(PaymentMethod, name="payment_method_enum", create_type=False),
+        Enum(PaymentMethod, name="payment_method_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
     )
 
@@ -238,7 +238,7 @@ class Payment(Base):
 
     # Status
     status: Mapped[PaymentStatus] = mapped_column(
-        Enum(PaymentStatus, name="payment_status_enum", create_type=False),
+        Enum(PaymentStatus, name="payment_status_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=PaymentStatus.PENDING,
         index=True,

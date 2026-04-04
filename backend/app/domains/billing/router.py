@@ -148,14 +148,15 @@ async def list_invoices(
     """
     # TODO: For CUSTOMER role, filter to only their invoices
     invoices, total = await service.list_invoices(
-        skip=pagination.skip, limit=pagination.limit, filters=filters
+        skip=pagination.offset, limit=pagination.limit, filters=filters
     )
 
     return InvoiceListResponse(
         items=[InvoiceResponse.model_validate(inv) for inv in invoices],
         total=total,
-        skip=pagination.skip,
-        limit=pagination.limit,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=(total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0,
     )
 
 
@@ -183,14 +184,15 @@ async def get_invoices_by_policy(
     """
     # TODO: Add ownership validation for CUSTOMER role
     invoices, total = await service.get_invoices_by_policy(
-        policy_id, skip=pagination.skip, limit=pagination.limit
+        policy_id, skip=pagination.offset, limit=pagination.limit
     )
 
     return InvoiceListResponse(
         items=[InvoiceResponse.model_validate(inv) for inv in invoices],
         total=total,
-        skip=pagination.skip,
-        limit=pagination.limit,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=(total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0,
     )
 
 
@@ -215,14 +217,15 @@ async def get_overdue_invoices(
     - 403: Insufficient permissions (requires AGENT role)
     """
     invoices, total = await service.get_overdue_invoices(
-        skip=pagination.skip, limit=pagination.limit
+        skip=pagination.offset, limit=pagination.limit
     )
 
     return InvoiceListResponse(
         items=[InvoiceResponse.model_validate(inv) for inv in invoices],
         total=total,
-        skip=pagination.skip,
-        limit=pagination.limit,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=(total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0,
     )
 
 
@@ -383,14 +386,15 @@ async def list_payments(
     """
     # TODO: For CUSTOMER role, filter to only their payments
     payments, total = await service.list_payments(
-        skip=pagination.skip, limit=pagination.limit
+        skip=pagination.offset, limit=pagination.limit
     )
 
     return PaymentListResponse(
         items=[PaymentResponse.model_validate(pmt) for pmt in payments],
         total=total,
-        skip=pagination.skip,
-        limit=pagination.limit,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=(total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0,
     )
 
 
@@ -418,14 +422,15 @@ async def get_payments_by_invoice(
     """
     # TODO: Add ownership validation for CUSTOMER role
     payments, total = await service.get_payments_by_invoice(
-        invoice_id, skip=pagination.skip, limit=pagination.limit
+        invoice_id, skip=pagination.offset, limit=pagination.limit
     )
 
     return PaymentListResponse(
         items=[PaymentResponse.model_validate(pmt) for pmt in payments],
         total=total,
-        skip=pagination.skip,
-        limit=pagination.limit,
+        page=pagination.page,
+        page_size=pagination.page_size,
+        total_pages=(total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0,
     )
 
 

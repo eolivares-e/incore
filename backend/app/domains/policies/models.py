@@ -57,12 +57,12 @@ class Policy(Base):
 
     # Policy Details
     policy_type: Mapped[PolicyType] = mapped_column(
-        Enum(PolicyType, name="policy_type_enum", create_type=False),
+        Enum(PolicyType, name="policy_type_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
     )
     status: Mapped[PolicyStatus] = mapped_column(
-        Enum(PolicyStatus, name="policy_status_enum", create_type=False),
+        Enum(PolicyStatus, name="policy_status_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=PolicyStatus.DRAFT,
         index=True,
@@ -205,7 +205,7 @@ class Coverage(Base):
 
     # Coverage Details
     coverage_type: Mapped[CoverageType] = mapped_column(
-        Enum(CoverageType, name="coverage_type_enum", create_type=False),
+        Enum(CoverageType, name="coverage_type_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
     )

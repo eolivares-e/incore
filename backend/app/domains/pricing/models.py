@@ -60,7 +60,7 @@ class Quote(Base):
 
     # Quote Details
     policy_type: Mapped[PolicyType] = mapped_column(
-        Enum(PolicyType, name="policy_type_enum", create_type=False),
+        Enum(PolicyType, name="policy_type_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
     )
@@ -101,7 +101,7 @@ class Quote(Base):
 
     # Status
     status: Mapped[QuoteStatus] = mapped_column(
-        Enum(QuoteStatus, name="quote_status_enum", create_type=False),
+        Enum(QuoteStatus, name="quote_status_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         default=QuoteStatus.DRAFT,
         index=True,
@@ -210,7 +210,7 @@ class PricingRule(Base):
 
     # Rule Scope
     policy_type: Mapped[PolicyType] = mapped_column(
-        Enum(PolicyType, name="policy_type_enum", create_type=False),
+        Enum(PolicyType, name="policy_type_enum", create_type=False, values_callable=lambda x: [e.value for e in x]),
         nullable=False,
         index=True,
     )
