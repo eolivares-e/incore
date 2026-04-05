@@ -14,6 +14,8 @@ from app.core.exceptions import (
 )
 from app.domains.users.models import User, UserRole
 from app.domains.users.schemas import (
+    AdminUserCreate,
+    AdminUserUpdate,
     CurrentUserResponse,
     TokenRefreshRequest,
     TokenResponse,
@@ -315,6 +317,7 @@ async def logout(
 async def list_users(
     role: UserRole | None = None,
     is_active: bool | None = None,
+    search: str | None = None,
     page: int = 1,
     size: int = 50,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
@@ -324,7 +327,7 @@ async def list_users(
 
     **Admin only endpoint**
 
-    Supports filtering by role and active status, with pagination.
+    Supports filtering by role, active status, and name/email search, with pagination.
 
     Returns:
     - 200: User list
@@ -332,7 +335,7 @@ async def list_users(
     - 403: Insufficient permissions
     """
     users, total = await auth_service.list_users(
-        role=role, is_active=is_active, page=page, size=size
+        role=role, is_active=is_active, search=search, page=page, size=size
     )
 
     return UserListResponse(
@@ -477,6 +480,109 @@ async def deactivate_user(
             admin_user=current_user, target_user_id=user_id
         )
         return UserResponse.model_validate(user)
+    except (ValidationException, AuthorizationException) as e:
+        status_code = (
+            status.HTTP_400_BAD_REQUEST
+            if isinstance(e, ValidationException)
+            else status.HTTP_403_FORBIDDEN
+        )
+        raise HTTPException(status_code=status_code, detail=str(e))
+
+
+@users_router.post(
+    "",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create user",
+    description="Create a new user with any role (admin only).",
+)
+async def create_user(
+    data: AdminUserCreate,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+    auth_service: AuthService = Depends(get_auth_service),
+) -> UserResponse:
+    """Create a new user.
+
+    **Admin only endpoint**
+
+    Returns:
+    - 201: User created
+    - 400: Validation error (duplicate email, weak password)
+    - 401: Invalid or expired token
+    - 403: Insufficient permissions
+    """
+    try:
+        user = await auth_service.admin_create_user(
+            email=data.email,
+            password=data.password,
+            full_name=data.full_name,
+            role=data.role,
+        )
+        return UserResponse.model_validate(user)
+    except ValidationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@users_router.put(
+    "/{user_id}",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update user",
+    description="Update a user's full name or email (admin only).",
+)
+async def update_user(
+    user_id: UUID,
+    data: AdminUserUpdate,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+    auth_service: AuthService = Depends(get_auth_service),
+) -> UserResponse:
+    """Update user profile.
+
+    **Admin only endpoint**
+
+    Returns:
+    - 200: User updated
+    - 400: Validation error
+    - 401: Invalid or expired token
+    - 403: Insufficient permissions
+    - 404: User not found
+    """
+    try:
+        user = await auth_service.admin_update_user(
+            target_user_id=user_id,
+            full_name=data.full_name,
+            email=str(data.email) if data.email else None,
+        )
+        return UserResponse.model_validate(user)
+    except ValidationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@users_router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete user",
+    description="Permanently delete a user (admin only). Cannot delete superusers.",
+)
+async def delete_user(
+    user_id: UUID,
+    current_user: User = Depends(require_role(UserRole.ADMIN)),
+    auth_service: AuthService = Depends(get_auth_service),
+) -> None:
+    """Permanently delete a user.
+
+    **Admin only endpoint**
+
+    Returns:
+    - 204: User deleted
+    - 400: Validation error (user not found)
+    - 401: Invalid or expired token
+    - 403: Insufficient permissions (or target is superuser)
+    """
+    try:
+        await auth_service.delete_user(
+            admin_user=current_user, target_user_id=user_id
+        )
     except (ValidationException, AuthorizationException) as e:
         status_code = (
             status.HTTP_400_BAD_REQUEST

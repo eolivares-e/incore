@@ -79,12 +79,14 @@ export async function listUsers(params: {
   size?: number
   role?: UserRole
   is_active?: boolean
+  search?: string
 } = {}, token?: string): Promise<PaginatedResponse<User>> {
   const q = new URLSearchParams()
   if (params.page) q.set('page', String(params.page))
   if (params.size) q.set('size', String(params.size))
   if (params.role) q.set('role', params.role)
   if (params.is_active !== undefined) q.set('is_active', String(params.is_active))
+  if (params.search) q.set('search', params.search)
   const qs = q.toString() ? `?${q}` : ''
   const raw = await apiFetch<{ users: User[]; total: number; page: number; size: number }>(
     `/users${qs}`, {}, token
@@ -95,6 +97,26 @@ export async function listUsers(params: {
     page: raw.page,
     pages: Math.ceil(raw.total / raw.size),
   }
+}
+
+export async function createUser(data: {
+  email: string
+  password: string
+  full_name: string
+  role: UserRole
+}): Promise<User> {
+  return apiFetch<User>('/users', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function updateUser(
+  id: string,
+  data: { full_name?: string; email?: string }
+): Promise<User> {
+  return apiFetch<User>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  return apiFetch<void>(`/users/${id}`, { method: 'DELETE' })
 }
 
 export async function activateUser(id: string): Promise<User> {

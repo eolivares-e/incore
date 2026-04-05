@@ -6,7 +6,7 @@ import { clearTokens, isAdmin } from '@/lib/auth'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/users', label: 'Users', adminOnly: true },
+  { href: '/users', label: 'Users' },
   { href: '/policyholders', label: 'Policyholders' },
   { href: '/policies', label: 'Policies' },
   { href: '/pricing-rules', label: 'Pricing Rules', adminOnly: true },

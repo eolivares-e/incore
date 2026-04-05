@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domains.users.models import User, UserRole
@@ -103,20 +103,20 @@ class UserRepository:
         await self.session.refresh(user)
         return user
 
-    async def delete(self, user_id: UUID) -> bool:
-        """Soft delete user by setting is_active to False.
+    async def hard_delete(self, user_id: UUID) -> bool:
+        """Permanently delete a user from the database.
 
         Args:
             user_id: User UUID
 
         Returns:
-            True if user was deactivated, False if not found
+            True if user was deleted, False if not found
         """
         user = await self.get_by_id(user_id)
         if not user:
             return False
 
-        user.is_active = False
+        await self.session.execute(delete(User).where(User.id == user_id))
         await self.session.commit()
         return True
 
@@ -211,6 +211,7 @@ class UserRepository:
         self,
         role: Optional[UserRole] = None,
         is_active: Optional[bool] = None,
+        search: Optional[str] = None,
         page: int = 1,
         size: int = 50,
     ) -> tuple[list[User], int]:
@@ -219,6 +220,7 @@ class UserRepository:
         Args:
             role: Optional role filter
             is_active: Optional active status filter
+            search: Optional search term (matches email or full_name)
             page: Page number (1-indexed)
             size: Page size
 
@@ -232,6 +234,11 @@ class UserRepository:
             query = query.where(User.role == role.value)
         if is_active is not None:
             query = query.where(User.is_active == is_active)
+        if search is not None:
+            term = f"%{search}%"
+            query = query.where(
+                or_(User.email.ilike(term), User.full_name.ilike(term))
+            )
 
         # Get total count
         count_query = select(func.count()).select_from(query.subquery())

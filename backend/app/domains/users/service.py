@@ -424,6 +424,7 @@ class AuthService:
         self,
         role: Optional[UserRole] = None,
         is_active: Optional[bool] = None,
+        search: Optional[str] = None,
         page: int = 1,
         size: int = 50,
     ) -> tuple[list[User], int]:
@@ -432,6 +433,7 @@ class AuthService:
         Args:
             role: Optional role filter
             is_active: Optional active status filter
+            search: Optional search term (matches email or full_name)
             page: Page number (1-indexed)
             size: Page size
 
@@ -439,5 +441,124 @@ class AuthService:
             Tuple of (users list, total count)
         """
         return await self.repository.filter_users(
-            role=role, is_active=is_active, page=page, size=size
+            role=role, is_active=is_active, search=search, page=page, size=size
+        )
+
+    async def admin_create_user(
+        self,
+        email: str,
+        password: str,
+        full_name: str,
+        role: UserRole = UserRole.CUSTOMER,
+    ) -> User:
+        """Create a new user with any role (admin operation).
+
+        Args:
+            email: User email address
+            password: Plain text password
+            full_name: User's full name
+            role: User role (admin can set any role)
+
+        Returns:
+            Created User instance
+
+        Raises:
+            ValidationException: If email already exists or password is weak
+        """
+        is_valid, error_msg = validate_password_strength(password)
+        if not is_valid:
+            raise ValidationException(error_msg)
+
+        if await self.repository.email_exists(email):
+            raise ValidationException(f"Email {email} is already registered")
+
+        hashed_password = get_password_hash(password)
+
+        user = await self.repository.create(
+            email=email,
+            hashed_password=hashed_password,
+            full_name=full_name,
+            role=role,
+            is_superuser=False,
+        )
+
+        logger.info(
+            "admin_created_user",
+            user_id=str(user.id),
+            email=user.email,
+            role=user.role,
+        )
+
+        return user
+
+    async def admin_update_user(
+        self,
+        target_user_id: UUID,
+        full_name: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> User:
+        """Update another user's profile (admin operation).
+
+        Args:
+            target_user_id: Target user UUID
+            full_name: New full name (optional)
+            email: New email (optional)
+
+        Returns:
+            Updated User instance
+
+        Raises:
+            ValidationException: If user not found or email already in use
+        """
+        user = await self.repository.get_by_id(target_user_id)
+        if not user:
+            raise ValidationException("User not found")
+
+        updates = {}
+
+        if full_name is not None:
+            updates["full_name"] = full_name
+
+        if email is not None and email != user.email:
+            if await self.repository.email_exists(email):
+                raise ValidationException(f"Email {email} is already registered")
+            updates["email"] = email
+
+        if updates:
+            user = await self.repository.update(target_user_id, **updates)
+
+        return user
+
+    async def delete_user(
+        self, admin_user: User, target_user_id: UUID
+    ) -> None:
+        """Permanently delete a user (admin operation).
+
+        Cannot delete superusers.
+
+        Args:
+            admin_user: Admin user performing the action
+            target_user_id: Target user UUID
+
+        Raises:
+            AuthorizationException: If admin lacks permission or target is superuser
+            ValidationException: If target user not found
+        """
+        await self.validate_user_for_action(admin_user, [UserRole.ADMIN])
+
+        target_user = await self.repository.get_by_id(target_user_id)
+        if not target_user:
+            raise ValidationException("User not found")
+
+        if target_user.is_superuser:
+            raise AuthorizationException("Cannot delete a superuser account")
+
+        deleted = await self.repository.hard_delete(target_user_id)
+        if not deleted:
+            raise ValidationException("User not found")
+
+        logger.info(
+            "admin_deleted_user",
+            admin_id=str(admin_user.id),
+            deleted_user_id=str(target_user_id),
         )

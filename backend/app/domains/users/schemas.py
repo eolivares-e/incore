@@ -168,5 +168,47 @@ class UserFilterParams(BaseModel):
 
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
+    search: Optional[str] = None
     page: int = Field(1, ge=1)
     size: int = Field(50, ge=1, le=100)
+
+
+class AdminUserCreate(BaseModel):
+    """Schema for admin-created users (any role allowed)."""
+
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=100)
+    full_name: str = Field(..., min_length=1, max_length=100)
+    role: UserRole = UserRole.CUSTOMER
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        """Validate password strength."""
+        is_valid, error_msg = validate_password_strength(v)
+        if not is_valid:
+            raise ValueError(error_msg)
+        return v
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, v: str) -> str:
+        """Validate full name is not empty."""
+        if not v or not v.strip():
+            raise ValueError("Full name cannot be empty")
+        return v.strip()
+
+
+class AdminUserUpdate(BaseModel):
+    """Schema for admin editing another user's profile."""
+
+    full_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    email: Optional[EmailStr] = None
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, v: Optional[str]) -> Optional[str]:
+        """Validate full name is not empty if provided."""
+        if v is not None and not v.strip():
+            raise ValueError("Full name cannot be empty")
+        return v.strip() if v else None
